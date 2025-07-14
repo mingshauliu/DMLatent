@@ -1,0 +1,75 @@
+=== CNN Training ===
+Configuration: {'img_size': 256, 'dropout': 0.3, 'batch_size': 32, 'lr': 0.0003, 'weight_decay': 0.001, 'epochs': 80, 'patience': 15, 'k_samples': 256, 'model_type': 'simple'}
+Loaded WDM mass data: 1024 entries
+
+Dataset split:
+Total: 256, Train: 153, Val: 51, Test: 52
+
+Loading datasets...
+Warning: Skipping missing files for box_913
+Warning: Skipping missing files for box_348
+Warning: Skipping missing files for box_998
+Warning: Skipping missing files for box_987
+Warning: Skipping missing files for box_808
+Warning: Skipping missing files for box_784
+Warning: Skipping missing files for box_889
+Warning: Skipping missing files for box_410
+Warning: Skipping corrupted file for box_445: Unable to synchronously open file (truncated file: eof = 96, sblock->base_addr = 0, stored_eof = 2048)
+Warning: Skipping missing files for box_156
+Warning: Skipping missing files for box_979
+Data loaders created: Train=3109, Val=1029, Test=1115 batches
+Using device: cuda
+Using SimpleCNN
+Model parameters: 1,206,625 total, 1,206,625 trainable
+
+Starting training for 80 epochs...
+Epoch   1: Train Loss=0.6844, Train Acc=0.5417, Val Loss=0.6814, Val Acc=0.5716
+  -> New best model saved (Val Loss: 0.6814)
+Epoch   2: Train Loss=0.6750, Train Acc=0.5723, Val Loss=0.6667, Val Acc=0.5971
+  -> New best model saved (Val Loss: 0.6667)
+Epoch   3: Train Loss=0.6695, Train Acc=0.5844, Val Loss=0.6687, Val Acc=0.5788
+Epoch   4: Train Loss=0.6634, Train Acc=0.5975, Val Loss=0.6528, Val Acc=0.6016
+  -> New best model saved (Val Loss: 0.6528)
+Epoch   5: Train Loss=0.6523, Train Acc=0.6175, Val Loss=0.6587, Val Acc=0.6117
+Epoch   6: Train Loss=0.6467, Train Acc=0.6248, Val Loss=0.6831, Val Acc=0.5607
+Epoch   7: Train Loss=0.6425, Train Acc=0.6306, Val Loss=0.6366, Val Acc=0.6283
+  -> New best model saved (Val Loss: 0.6366)
+Epoch   8: Train Loss=0.6389, Train Acc=0.6343, Val Loss=0.6404, Val Acc=0.6389
+Epoch   9: Train Loss=0.6373, Train Acc=0.6379, Val Loss=0.6472, Val Acc=0.6074
+Epoch  10: Train Loss=0.6351, Train Acc=0.6395, Val Loss=0.6538, Val Acc=0.6039
+Epoch  11: Train Loss=0.6330, Train Acc=0.6419, Val Loss=0.6355, Val Acc=0.6463
+  -> New best model saved (Val Loss: 0.6355)
+Epoch  12: Train Loss=0.6306, Train Acc=0.6447, Val Loss=0.6431, Val Acc=0.6185
+Epoch  13: Train Loss=0.6283, Train Acc=0.6462, Val Loss=0.6351, Val Acc=0.6354
+  -> New best model saved (Val Loss: 0.6351)
+Epoch  14: Train Loss=0.6268, Train Acc=0.6483, Val Loss=0.6401, Val Acc=0.6211
+Epoch  15: Train Loss=0.6259, Train Acc=0.6494, Val Loss=0.6864, Val Acc=0.5731
+Epoch  16: Train Loss=0.6235, Train Acc=0.6544, Val Loss=0.6305, Val Acc=0.6370
+  -> New best model saved (Val Loss: 0.6305)
+Epoch  17: Train Loss=0.6218, Train Acc=0.6555, Val Loss=0.6246, Val Acc=0.6450
+  -> New best model saved (Val Loss: 0.6246)
+Epoch  18: Train Loss=0.6206, Train Acc=0.6564, Val Loss=0.6350, Val Acc=0.6421
+Epoch  19: Train Loss=0.6205, Train Acc=0.6547, Val Loss=0.6254, Val Acc=0.6395
+Epoch  20: Train Loss=0.6194, Train Acc=0.6567, Val Loss=0.6392, Val Acc=0.6292
+Epoch  21: Train Loss=0.6165, Train Acc=0.6621, Val Loss=0.6281, Val Acc=0.6488
+Epoch  22: Train Loss=0.6165, Train Acc=0.6638, Val Loss=0.6393, Val Acc=0.6284
+Epoch  23: Train Loss=0.6151, Train Acc=0.6637, Val Loss=0.6288, Val Acc=0.6422
+Epoch  24: Train Loss=0.6112, Train Acc=0.6674, Val Loss=0.6250, Val Acc=0.6710
+Epoch  25: Train Loss=0.6111, Train Acc=0.6685, Val Loss=0.6334, Val Acc=0.6415
+Epoch  26: Train Loss=0.6090, Train Acc=0.6693, Val Loss=0.6333, Val Acc=0.6457
+Epoch  27: Train Loss=0.6082, Train Acc=0.6714, Val Loss=0.6329, Val Acc=0.6498
+Epoch  28: Train Loss=0.6060, Train Acc=0.6734, Val Loss=0.6245, Val Acc=0.6635
+  -> New best model saved (Val Loss: 0.6245)
+Epoch  29: Train Loss=0.6033, Train Acc=0.6729, Val Loss=0.6263, Val Acc=0.6636
+Epoch  30: Train Loss=0.6043, Train Acc=0.6737, Val Loss=0.6176, Val Acc=0.6629
+  -> New best model saved (Val Loss: 0.6176)
+Epoch  31: Train Loss=0.6020, Train Acc=0.6747, Val Loss=0.6198, Val Acc=0.6691
+Epoch  32: Train Loss=0.6018, Train Acc=0.6743, Val Loss=0.6197, Val Acc=0.6581
+Epoch  33: Train Loss=0.5997, Train Acc=0.6777, Val Loss=0.6262, Val Acc=0.6746
+Epoch  34: Train Loss=0.5983, Train Acc=0.6769, Val Loss=0.6187, Val Acc=0.6703
+Epoch  35: Train Loss=0.5974, Train Acc=0.6777, Val Loss=0.6268, Val Acc=0.6648
+Epoch  36: Train Loss=0.5968, Train Acc=0.6801, Val Loss=0.6255, Val Acc=0.6679
+Epoch  37: Train Loss=0.5950, Train Acc=0.6806, Val Loss=0.6174, Val Acc=0.6674
+  -> New best model saved (Val Loss: 0.6174)
+Epoch  38: Train Loss=0.5932, Train Acc=0.6829, Val Loss=0.6230, Val Acc=0.6692
+Epoch  39: Train Loss=0.5918, Train Acc=0.6827, Val Loss=0.6300, Val Acc=0.6617

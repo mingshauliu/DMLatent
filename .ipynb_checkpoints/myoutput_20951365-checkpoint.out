@@ -1,0 +1,54 @@
+=== CNN Training ===
+Configuration: {'img_size': 256, 'dropout': 0.3, 'batch_size': 32, 'lr': 0.0003, 'weight_decay': 0.001, 'epochs': 80, 'patience': 15, 'k_samples': 256, 'model_type': 'simple'}
+Loaded WDM mass data: 1024 entries
+
+Dataset split:
+Total: 256, Train: 153, Val: 51, Test: 52
+
+Loading datasets...
+Warning: Skipping missing files for box_913
+Warning: Skipping missing files for box_348
+Warning: Skipping missing files for box_998
+Warning: Skipping missing files for box_987
+Warning: Skipping missing files for box_808
+Warning: Skipping missing files for box_784
+Warning: Skipping missing files for box_889
+Warning: Skipping missing files for box_410
+Warning: Skipping corrupted file for box_445: Unable to synchronously open file (truncated file: eof = 96, sblock->base_addr = 0, stored_eof = 2048)
+Warning: Skipping missing files for box_156
+Warning: Skipping missing files for box_979
+Data loaders created: Train=3109, Val=1029, Test=1115 batches
+Using device: cuda
+Using SimpleCNN
+Model parameters: 1,206,625 total, 1,206,625 trainable
+Resuming from checkpoint...
+Resumed from epoch 37 with val_loss=0.6174
+
+Starting training for 80 epochs...
+  First batch time: 2.559s
+  Iterations/sec: 123.86, Total epoch time: 803.06s
+Epoch  38: Train Loss=0.5931, Train Acc=0.6820, Val Loss=0.6305, Val Acc=0.6650
+  First batch time: 0.099s
+  Iterations/sec: 126.42, Total epoch time: 786.84s
+Epoch  39: Train Loss=0.5918, Train Acc=0.6839, Val Loss=0.6261, Val Acc=0.6690
+  First batch time: 0.099s
+  Iterations/sec: 133.42, Total epoch time: 745.55s
+Epoch  40: Train Loss=0.5913, Train Acc=0.6832, Val Loss=0.6260, Val Acc=0.6706
+  First batch time: 0.099s
+  Iterations/sec: 137.45, Total epoch time: 723.69s
+Epoch  41: Train Loss=0.5908, Train Acc=0.6822, Val Loss=0.6247, Val Acc=0.6703
+  First batch time: 0.102s
+  Iterations/sec: 139.82, Total epoch time: 711.40s
+Epoch  42: Train Loss=0.5893, Train Acc=0.6842, Val Loss=0.6261, Val Acc=0.6767
+  First batch time: 0.099s
+  Iterations/sec: 141.63, Total epoch time: 702.31s
+Epoch  43: Train Loss=0.5875, Train Acc=0.6842, Val Loss=0.6240, Val Acc=0.6697
+  First batch time: 0.086s
+  Iterations/sec: 139.69, Total epoch time: 712.10s
+Epoch  44: Train Loss=0.5885, Train Acc=0.6848, Val Loss=0.6209, Val Acc=0.6705
+  First batch time: 0.085s
+  Iterations/sec: 138.73, Total epoch time: 717.03s
+Epoch  45: Train Loss=0.5874, Train Acc=0.6856, Val Loss=0.6343, Val Acc=0.6696
+  First batch time: 0.085s
+  Iterations/sec: 138.19, Total epoch time: 719.80s
+Epoch  46: Train Loss=0.5868, Train Acc=0.6875, Val Loss=0.6303, Val Acc=0.6647

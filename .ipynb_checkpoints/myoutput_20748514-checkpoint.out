@@ -1,0 +1,21 @@
+=== Vision Transformer Training ===
+Configuration: {'img_size': 256, 'patch_size': 16, 'embed_dim': 256, 'depth': 4, 'num_heads': 8, 'dropout': 0.2, 'batch_size': 32, 'lr': 0.001, 'weight_decay': 0.01, 'epochs': 80, 'patience': 12, 'k_samples': 150}
+Loaded WDM mass data: 1024 entries
+
+Dataset split:
+Total: 150, Train: 90, Val: 30, Test: 30
+
+Loading datasets...
+Warning: Skipping missing files for box_348
+Warning: Skipping missing files for box_913
+Warning: Skipping missing files for box_979
+Warning: Skipping missing files for box_410
+Data loaders created: Train=1866, Val=644, Test=622 batches
+Using device: cuda
+
+Starting training for 80 epochs...
+Epoch   1: Train Loss=0.6996, Train Acc=0.4997, Val Loss=0.6931, Val Acc=0.5000
+  -> New best model saved (Val Loss: 0.6931)
+Epoch   2: Train Loss=0.6935, Train Acc=0.5008, Val Loss=0.6932, Val Acc=0.5000
+Epoch   3: Train Loss=0.6933, Train Acc=0.5000, Val Loss=0.6984, Val Acc=0.5000
+Epoch   4: Train Loss=0.6934, Train Acc=0.5003, Val Loss=0.6932, Val Acc=0.5000

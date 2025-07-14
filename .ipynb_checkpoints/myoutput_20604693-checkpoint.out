@@ -1,0 +1,50 @@
+=== Vision Transformer Training ===
+Configuration: {'img_size': 256, 'patch_size': 16, 'embed_dim': 256, 'depth': 4, 'num_heads': 8, 'dropout': 0.05, 'batch_size': 64, 'lr': 0.0001, 'weight_decay': 0.001, 'epochs': 60, 'patience': 10, 'k_samples': 100}
+Loaded WDM mass data: 1024 entries
+
+Dataset split:
+Total: 100, Train: 60, Val: 20, Test: 20
+
+Loading datasets...
+Warning: Skipping missing files for box_913
+Warning: Skipping missing files for box_348
+Warning: Skipping missing files for box_979
+Data loaders created: Train=622, Val=204, Test=215 batches
+Using device: cuda
+
+Starting training for 60 epochs...
+Epoch   1: Train Loss=0.6914, Train Acc=0.5305, Val Loss=0.6871, Val Acc=0.5049
+  -> New best model saved (Val Loss: 0.6871)
+Epoch   2: Train Loss=0.6840, Train Acc=0.5571, Val Loss=0.6667, Val Acc=0.5690
+  -> New best model saved (Val Loss: 0.6667)
+Epoch   3: Train Loss=0.6815, Train Acc=0.5620, Val Loss=0.6635, Val Acc=0.5763
+  -> New best model saved (Val Loss: 0.6635)
+Epoch   4: Train Loss=0.6798, Train Acc=0.5638, Val Loss=0.6669, Val Acc=0.5718
+Epoch   5: Train Loss=0.6765, Train Acc=0.5699, Val Loss=0.6569, Val Acc=0.5754
+  -> New best model saved (Val Loss: 0.6569)
+Epoch   6: Train Loss=0.6742, Train Acc=0.5738, Val Loss=0.6449, Val Acc=0.6188
+  -> New best model saved (Val Loss: 0.6449)
+Epoch   7: Train Loss=0.6695, Train Acc=0.5824, Val Loss=0.6442, Val Acc=0.5973
+  -> New best model saved (Val Loss: 0.6442)
+Epoch   8: Train Loss=0.6635, Train Acc=0.5950, Val Loss=0.6164, Val Acc=0.6520
+  -> New best model saved (Val Loss: 0.6164)
+Epoch   9: Train Loss=0.6513, Train Acc=0.6153, Val Loss=0.6300, Val Acc=0.6426
+Epoch  10: Train Loss=0.6057, Train Acc=0.6634, Val Loss=0.6872, Val Acc=0.5797
+Epoch  11: Train Loss=0.5716, Train Acc=0.6879, Val Loss=0.7501, Val Acc=0.5832
+Epoch  12: Train Loss=0.5562, Train Acc=0.6990, Val Loss=0.7955, Val Acc=0.5882
+Epoch  13: Train Loss=0.5448, Train Acc=0.7046, Val Loss=0.7598, Val Acc=0.5895
+Epoch  14: Train Loss=0.5340, Train Acc=0.7132, Val Loss=0.7967, Val Acc=0.5997
+Epoch  15: Train Loss=0.5250, Train Acc=0.7201, Val Loss=0.8376, Val Acc=0.5839
+Epoch  16: Train Loss=0.5173, Train Acc=0.7257, Val Loss=0.8456, Val Acc=0.6179
+Epoch  17: Train Loss=0.5055, Train Acc=0.7319, Val Loss=0.9406, Val Acc=0.5852
+Epoch  18: Train Loss=0.4961, Train Acc=0.7403, Val Loss=0.8806, Val Acc=0.6084
+Early stopping triggered after 18 epochs
+
+Loading best model for final evaluation...
+
+Final Results:
+Best Val Acc: 0.6520
+Test Acc: 0.6542
+Attention map saved as 'attention_example.png'
+
+Training completed!

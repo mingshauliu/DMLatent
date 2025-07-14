@@ -1,0 +1,33 @@
+=== CNN Training ===
+Configuration: {'img_size': 256, 'dropout': 0.3, 'batch_size': 32, 'lr': 0.0003, 'weight_decay': 0.001, 'epochs': 80, 'patience': 15, 'k_samples': 512, 'model_type': 'simple'}
+Loaded WDM mass data: 1024 entries
+
+Dataset split:
+Total: 512, Train: 307, Val: 102, Test: 103
+
+Loading datasets...
+Warning: Skipping missing files for box_913
+Warning: Skipping missing files for box_889
+Warning: Skipping corrupted file for box_445: Unable to synchronously open file (truncated file: eof = 96, sblock->base_addr = 0, stored_eof = 2048)
+Warning: Skipping missing files for box_134
+Warning: Skipping missing files for box_998
+Warning: Skipping missing files for box_156
+Warning: Skipping missing files for box_77
+Warning: Skipping missing files for box_42
+Warning: Skipping missing files for box_984
+Warning: Skipping missing files for box_808
+Warning: Skipping missing files for box_991
+Warning: Skipping missing files for box_987
+Warning: Skipping missing files for box_784
+Warning: Skipping missing files for box_979
+Warning: Skipping missing files for box_348
+Warning: Skipping missing files for box_864
+Warning: Skipping missing files for box_410
+Data loaders created: Train=6367, Val=2101, Test=2144 batches
+Using device: cuda
+Using SimpleCNN
+Model parameters: 1,206,625 total, 1,206,625 trainable
+
+Starting training for 80 epochs...
+Epoch   1: Train Loss=0.6777, Train Acc=0.5621, Val Loss=0.6650, Val Acc=0.5414
+  -> New best model saved (Val Loss: 0.6650)
