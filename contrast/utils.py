@@ -15,6 +15,36 @@ def set_seed(seed=42):
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
 
+class CDMWDMPairDataset(torch.utils.data.Dataset):
+    def __init__(self, cdm_data, wdm_data, transform=None):
+        self.cdm_data = cdm_data
+        self.wdm_data = wdm_data
+        self.transform = transform
+
+    def __len__(self):
+        return max(len(self.cdm_data), len(self.wdm_data))
+
+    def __getitem__(self, idx):
+        if random.random() < 0.5:
+            # Positive pair (CDM-CDM or WDM-WDM)
+            class_choice = random.choice(["cdm", "wdm"])
+            dataset = self.cdm_data if class_choice == "cdm" else self.wdm_data
+            x1 = dataset[random.randint(0, len(dataset) - 1)][0]
+            x2 = dataset[random.randint(0, len(dataset) - 1)][0]
+            label1 = label2 = 0 if class_choice == "cdm" else 1
+        else:
+            # Negative pair
+            x1 = self.cdm_data[random.randint(0, len(self.cdm_data) - 1)][0]
+            x2 = self.wdm_data[random.randint(0, len(self.wdm_data) - 1)][0]
+            label1, label2 = 0, 1
+
+        if self.transform:
+            x1 = self.transform(x1)
+            x2 = self.transform(x2)
+
+        return x1, x2, label1, label2
+
+
 class CosmicWebDataset(Dataset):
     """Dataset class for CDM/WDM cosmic web classification"""
     

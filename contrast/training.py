@@ -1,244 +1,131 @@
-"""
-CNN for CDM/WDM Cosmic Web Classification
-"""
+import os
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-import os
-import numpy as np
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+from tqdm import tqdm
 import random
-import matplotlib.pyplot as plt
-import time
-from utils import set_seed, load_dataset, plot_feature_maps, plot_training_progress, evaluate_model, extract_features
-from transform import TensorAugment, SimpleResize
-from models import WDMClassifierDilatedResNet, WDMClassifierTiny
+from PIL import Image
+import numpy as np
 
-def main():
-    """Main training function"""
-    # Set random seed for reproducibility
-    set_seed(42)
-    
-    # Configuration
-    config = {
-        'img_size': 256,
-        'dropout': 0.1,  # Dropout rate
-        'batch_size': 64,
-        'lr': 5e-5,  # Learning rate
-        'weight_decay': 1e-4,
-        'epochs': 80,
-        'patience': 20,  # Early stopping patience
-        'k_samples': 15000,  # Number of samples to use
-        'model_type': 'tiny',  # 'simple' or 'big'
-        'blur_kernel': 0,
-        # 'conv_kernel_size': 'adj',  # Kernel size for convolutional layers
-        'conv_kernel_size': 9,  # Kernel size for convolutional layers
-        'normalize': False  # Normalize images to Gaussian
-    }
-    
-    cdm_file='/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy'
-    wdm_file='/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mtot_IllustrisTNG_WDM_z=0.00.npy'
-    
-    print("=== CNN Training ===")
-    print(f"Configuration: {config}")
-    
-    # Load WDM mass data (if needed)
-    try:
-        WDM_mass = []
-        with open('WDM_TNG_MW_SB4.txt', 'r') as f:
-            for i, line in enumerate(f.readlines()[1:]):
-                WDM_mass.append([i, float(line.strip().split(' ')[0])])
-        WDM_mass = np.array(WDM_mass)
-        print(f"Loaded WDM mass data: {len(WDM_mass)} entries")
-    except FileNotFoundError:
-        print("Warning: WDM_TNG_MW_SB4.txt not found, using random indices")
-        WDM_mass = None
-    
-    # Sample indices
-    all_indices = random.sample(range(15000), config['k_samples'])
-    random.shuffle(all_indices)
-    
-    # Split data
-    train_ratio, val_ratio = 0.6, 0.2
-    total_samples = len(all_indices)
-    train_end = int(train_ratio * total_samples)
-    val_end = int((train_ratio + val_ratio) * total_samples)
-    
-    train_indices = all_indices[:train_end]
-    val_indices = all_indices[train_end:val_end]
-    test_indices = all_indices[val_end:]
-    
-    print(f"\nDataset split:")
-    print(f"Total: {total_samples}, Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)}")
-    
-    # Create transforms (keeping log scale and augmentation intact)
-    train_transform = TensorAugment(
-        size=(config['img_size'], config['img_size']),
-        p_flip=0.5, # No flipping and rotation for now
-        p_rot=0.5,
-        noise_std=0, # Stop noise temporarily
-        blur_kernel=config['blur_kernel'],
-        apply_log=True,  # Keep log scale
-        normalize=config['normalize']  # Normalize images to [0, 1]
-    )
-    
-    val_test_transform = SimpleResize(
-        size=(config['img_size'], config['img_size']),
-        apply_log=True,  # Keep log scale
-        normalize=config['normalize']  # Normalize images to [0, 1]
-    )
-    
-    # Create datasets
-    print("\nLoading datasets...")
-    train_dataset = load_dataset(train_indices, transform=train_transform, cdm_file=cdm_file, wdm_file=wdm_file)
-    val_dataset = load_dataset(val_indices, transform=val_test_transform, cdm_file=cdm_file, wdm_file=wdm_file)
-    test_dataset = load_dataset(test_indices, transform=val_test_transform, cdm_file=cdm_file, wdm_file=wdm_file)
+# ------------------ Base Encoder ------------------
+class SimpleCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 16, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+            nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2)
+        )
+        self.out_features = 32 * 16 * 16  # Assumes input 64x64
 
-    
-    # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, 
-                             num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=False, 
-                           num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=False, 
-                            num_workers=4, pin_memory=True)
-    
-    print(f"Data loaders created: Train={len(train_loader)}, Val={len(val_loader)}, Test={len(test_loader)} batches")
-    
-    # Model setup
+    def forward(self, x):
+        x = self.conv(x)
+        return x.view(x.size(0), -1)
+
+# ------------------ Projection Head ------------------
+class ContrastiveCNN(nn.Module):
+    def __init__(self, base_cnn, projection_dim=128):
+        super().__init__()
+        self.encoder = base_cnn
+        self.projector = nn.Sequential(
+            nn.Linear(base_cnn.out_features, 256),
+            nn.ReLU(),
+            nn.Linear(256, projection_dim)
+        )
+
+    def forward(self, x):
+        features = self.encoder(x)
+        return F.normalize(self.projector(features), dim=1)
+
+# ------------------ Contrastive Loss ------------------
+class NECTLoss(nn.Module):
+    def __init__(self, temperature=0.1):
+        super().__init__()
+        self.temperature = temperature
+
+    def forward(self, z_i, z_j, labels_i, labels_j):
+        logits = torch.matmul(z_i, z_j.T) / self.temperature
+        logits_mask = torch.eye(logits.shape[0], device=logits.device).bool()
+        labels_match = (labels_i.unsqueeze(1) == labels_j.unsqueeze(0)).float()
+        labels_match = labels_match.masked_fill_(logits_mask, 0)
+        sim = F.softmax(logits, dim=1)
+        loss = -torch.sum(labels_match * torch.log(sim + 1e-8)) / labels_match.sum()
+        return loss
+
+# ------------------ Dataset Class ------------------
+class CDMWDMPairDataset(Dataset):
+    def __init__(self, cdm_data, wdm_data, transform=None):
+        self.cdm_data = cdm_data
+        self.wdm_data = wdm_data
+        self.transform = transform
+
+    def __len__(self):
+        return max(len(self.cdm_data), len(self.wdm_data))
+
+    def __getitem__(self, idx):
+        if random.random() < 0.5:
+            dataset = self.cdm_data if random.random() < 0.5 else self.wdm_data
+            x1 = dataset[random.randint(0, len(dataset) - 1)][0]
+            x2 = dataset[random.randint(0, len(dataset) - 1)][0]
+            label1 = label2 = 0 if dataset == self.cdm_data else 1
+        else:
+            x1 = self.cdm_data[random.randint(0, len(self.cdm_data) - 1)][0]
+            x2 = self.wdm_data[random.randint(0, len(self.wdm_data) - 1)][0]
+            label1, label2 = 0, 1
+        if self.transform:
+            x1 = self.transform(x1)
+            x2 = self.transform(x2)
+        return x1, x2, torch.tensor(label1), torch.tensor(label2)
+
+# ------------------ Minimal Augmentations ------------------
+def get_contrastive_transform(crop_size=None):
+    t_list = [
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation([0, 90, 180, 270])
+    ]
+    if crop_size:
+        t_list.insert(0, transforms.RandomCrop(crop_size))
+    t_list.append(transforms.ToTensor())
+    return transforms.Compose(t_list)
+
+# ------------------ Dummy Image Data Generator ------------------
+def create_dummy_dataset(n, label):
+    data = []
+    for _ in range(n):
+        img = Image.fromarray((np.random.rand(64, 64) * 255).astype(np.uint8)).convert("L")
+        data.append((img, label))
+    return data
+
+# ------------------ Training Script ------------------
+def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    
-    # Initialize model based on configuration
-    if config['model_type'] == 'dilated':
-        model = WDMClassifierDilatedResNet(
-            num_classes=1,
-            dropout=config['dropout']
-        ).to(device)
-        print("Using WDMClassifierDilatedResNet")
-    elif config['model_type'] == 'tiny':
-        model = WDMClassifierTiny(
-            num_classes=1,
-            dropout=config['dropout']
-        ).to(device)
-        print("Using WDMClassifierTiny")
-    
-    # Print model info
-    total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
-    
-    # Loss and optimizer
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        patience=5,
-        factor=0.5
-    )
-    
-    # Training tracking
-    train_loss_hist, train_acc_hist, val_acc_hist = [], [], []
-    best_val_acc = 0.0
-    patience_counter = 0
-    
-    start_epoch = 0
-    if os.path.exists(f"best_cnn_model_blur_{config['blur_kernel']}_{config['model_type']}.pt"):
-        print("Resuming from checkpoint...")
-        checkpoint = torch.load(f"best_cnn_model_blur_{config['blur_kernel']}_{config['model_type']}.pt", map_location=device, weights_only=True)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        best_val_acc = checkpoint.get('val_acc', 0.0)
-        start_epoch = checkpoint.get('epoch', 0) + 1
-        print(f"Resumed from epoch {start_epoch} with val_acc={best_val_acc:.4f}")
+    transform = get_contrastive_transform()
+    cdm_data = create_dummy_dataset(500, 0)
+    wdm_data = create_dummy_dataset(500, 1)
+    dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform=transform)
+    loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    
-    print(f"\nStarting training for {config['epochs']} epochs...")
+    model = ContrastiveCNN(SimpleCNN()).to(device)
+    loss_fn = NECTLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
 
-    # Training loop
-    for epoch in range(config['epochs']):
-        # Training phase
+    for epoch in range(10):
         model.train()
-        train_loss, train_correct = 0.0, 0
-        start_time = time.time()
-        num_batches = len(train_loader)
-        
-        for batch_idx, (images, labels) in enumerate(train_loader):
-            batch_start = time.time()
-            images = images.to(device)
-            labels = labels.to(device).unsqueeze(1)
-            
+        total_loss = 0
+        for x1, x2, y1, y2 in tqdm(loader, desc=f"Epoch {epoch+1}"):
+            x1, x2, y1, y2 = x1.to(device), x2.to(device), y1.to(device), y2.to(device)
+            z1 = model(x1)
+            z2 = model(x2)
+            loss = loss_fn(z1, z2, y1, y2)
+
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            
-            train_loss += loss.item() * labels.size(0)
-            preds = (torch.sigmoid(outputs) > 0.5).float()
-            train_correct += (preds == labels).sum().item()
-            
-            batch_time = time.time() - batch_start
-            if batch_idx == 0:
-                print(f"  First batch time: {batch_time:.3f}s")
-        
-        total_time = time.time() - start_time
-        iters_per_sec = len(train_loader.dataset) / total_time
-        print(f"  Iterations/sec: {iters_per_sec:.2f}, Total epoch time: {total_time:.2f}s")
-        avg_train_loss = train_loss / len(train_loader.dataset)
-        train_acc = train_correct / len(train_loader.dataset)
-        
-        # Validation phase
-        avg_val_loss, val_acc = evaluate_model(model, val_loader, criterion, device)
-        scheduler.step(avg_val_loss)
-        
-        # Record history
-        train_loss_hist.append(avg_train_loss)
-        train_acc_hist.append(train_acc)
-        val_acc_hist.append(val_acc)
-        
-        print(f"Epoch {epoch+1:3d}: Train Loss={avg_train_loss:.4f}, Train Acc={train_acc:.4f}, "
-              f"Val Loss={avg_val_loss:.4f}, Val Acc={val_acc:.4f}")
-        
-        # Early stopping and model saving
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
-            patience_counter = 0
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'val_loss': avg_val_loss,
-                'val_acc': val_acc,
-                'config': config
-            }, f"best_cnn_model_blur_{config['blur_kernel']}_{config['model_type']}.pt")
-            print(f"  -> New best model saved (Val Acc: {val_acc:.4f})")
-        else:
-            patience_counter += 1
-            if patience_counter >= config['patience']:
-                print(f"Early stopping triggered after {epoch+1} epochs")
-                break
-    
-    # Load best model for final evaluation
-    print("\nLoading best model for final evaluation...")
-    checkpoint = torch.load(f"best_cnn_model_blur_{config['blur_kernel']}_{config['model_type']}.pt", map_location=device, weights_only=True)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    
-    # Final evaluation
-    test_loss, test_acc = evaluate_model(model, test_loader, criterion, device)
-    print(f"\nFinal Results:")
-    print(f"Best Val Acc: {best_val_acc:.4f}")
-    print(f"Test Acc: {test_acc:.4f}")
-    
-    # Plot training progress
-    plot_training_progress(train_loss_hist, train_acc_hist, val_acc_hist, f'cnn_training_progress_blur_{config['blur_kernel']}_{config['model_type']}.png')
-    
-    # Generate feature map visualization
-    if len(test_loader) > 0:
-        plot_feature_maps(model, test_loader, device, f'cnn_feature_maps_blur_{config['blur_kernel']}_{config['model_type']}.png')
-    
-    print("\nTraining completed!")
+            total_loss += loss.item()
 
+        print(f"Epoch {epoch+1} Loss: {total_loss / len(loader):.4f}")
 
 if __name__ == "__main__":
-    main()
+    train()

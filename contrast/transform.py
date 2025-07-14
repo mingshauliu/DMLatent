@@ -120,3 +120,16 @@ class SimpleResize(nn.Module):
             img = (img - img.mean()) / img.std() # Normalize to zero mean and unit variance
             
         return img.squeeze(0)
+    
+from torchvision import transforms
+
+def get_contrastive_transform(crop_size=None):
+    t_list = [
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation([0, 90, 180, 270])
+    ]
+    if crop_size:
+        t_list.insert(0, transforms.RandomCrop(crop_size))
+    t_list.append(transforms.ToTensor())
+    return transforms.Compose(t_list)

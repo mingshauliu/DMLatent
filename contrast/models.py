@@ -2,101 +2,37 @@ import torch
 import torch.nn as nn
 from torchvision.models import resnet18
 
-
-
-class WDMClassifierDilatedResNet(nn.Module):
-    def __init__(self, num_classes=1, dropout=0.2):
+class ContrastiveCNN(nn.Module):
+    def __init__(self, base_cnn, projection_dim=128):
         super().__init__()
-        base = resnet18(weights=None)
-
-        # Update for 1-channel input
-        base.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-
-        # Disable stride in later blocks
-        base.layer3[0].conv1.stride = (1, 1)
-        base.layer3[0].downsample[0].stride = (1, 1)
-        base.layer4[0].conv1.stride = (1, 1)
-        base.layer4[0].downsample[0].stride = (1, 1)
-
-        # Add dilation
-        for name, m in base.layer3.named_modules():
-            if "conv2" in name:
-                m.dilation = (2, 2)
-                m.padding = (2, 2)
-        for name, m in base.layer4.named_modules():
-            if "conv2" in name:
-                m.dilation = (4, 4)
-                m.padding = (4, 4)
-
-        # Save blocks
-        self.stem = nn.Sequential(
-            base.conv1,
-            base.bn1,
-            base.relu,
-            base.maxpool,
-        )
-        self.layer1 = base.layer1
-        self.layer2 = base.layer2
-        self.layer3 = base.layer3
-        self.layer4 = base.layer4
-
-        # Classifier
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)),  # global pool
-            nn.Flatten(),
-            nn.Dropout(dropout),
-            nn.Linear(512, num_classes)
+        self.encoder = base_cnn  # e.g., SimpleCNN or ResNet variant
+        self.projector = nn.Sequential(
+            nn.Linear(self.encoder.out_features, 256),
+            nn.ReLU(),
+            nn.Linear(256, projection_dim)
         )
 
     def forward(self, x):
-        x = self.stem(x)      # [B, 64, H/4, W/4]
-        x = self.layer1(x)    # [B, 64, ...]
-        x = self.layer2(x)    # [B, 128, ...]
-        x = self.layer3(x)    # [B, 256, ...]
-        x = self.layer4(x)    # [B, 512, H', W']
-        x = self.classifier(x)
-        return x
+        features = self.encoder(x)
+        embeddings = self.projector(features)
+        return F.normalize(embeddings, dim=1)
 
+class NECTLoss(nn.Module):
+    def __init__(self, temperature=0.1):
+        super().__init__()
+        self.temperature = temperature
 
-# class WDMClassifierTiny(nn.Module):
-#     """Lightweight CNN for CDM/WDM classification"""
-#     def __init__(self, in_channels=1, num_classes=1, dropout=0.3):
-#         super().__init__()
+    def forward(self, z_i, z_j, labels_i, labels_j):
+        logits = torch.matmul(z_i, z_j.T) / self.temperature
+        logits_mask = torch.eye(logits.shape[0], device=logits.device).bool()
+        
+        labels_match = (labels_i.unsqueeze(1) == labels_j.unsqueeze(0)).float()
+        labels_match = labels_match.masked_fill_(logits_mask, 0)
 
-#         self.features = nn.Sequential(
-#             nn.Conv2d(in_channels, 16, kernel_size=3, padding=1),  # 256x256
-#             nn.BatchNorm2d(16),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2),  # 128x128
-
-#             nn.Conv2d(16, 32, kernel_size=3, padding=1),
-#             nn.BatchNorm2d(32),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2),  # 64x64
-
-#             nn.Conv2d(32, 64, kernel_size=3, padding=1),
-#             nn.BatchNorm2d(64),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2),  # 32x32
-
-#             nn.Conv2d(64, 128, kernel_size=3, padding=1),
-#             nn.BatchNorm2d(128),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2),  # 16x16
-#         )
-
-#         self.classifier = nn.Sequential(
-#             nn.AdaptiveAvgPool2d((1, 1)),  # [B, 128, 1, 1]
-#             nn.Flatten(),
-#             nn.Dropout(dropout),
-#             nn.Linear(128, num_classes)
-#         )
-
-#     def forward(self, x):
-#         x = self.features(x)
-#         x = self.classifier(x)
-#         return x
-
+        # Softmax over logits
+        sim = F.softmax(logits, dim=1)
+        loss = -torch.sum(labels_match * torch.log(sim + 1e-8)) / labels_match.sum()
+        return loss
 
 class WDMClassifierTiny(nn.Module):
     """Small CNN for filament classification without aggressive downsampling"""
