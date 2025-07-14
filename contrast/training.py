@@ -9,16 +9,62 @@ import random
 from PIL import Image
 import numpy as np
 from models import ContrastiveCNN, NECTLoss, WDMClassifierTiny
-from utils import get_contrastive_transform, CDMWDMPairDataset
+from utils import CDMWDMPairDataset, load_contrastive_dataset
+from transform import TensorAugment
 
 
 # ------------------ Training Script ------------------
 def train():
+    config = {
+        'img_size': 256,
+        'dropout': 0.1,  # Dropout rate
+        'batch_size': 64,
+        'lr': 5e-5,  # Learning rate
+        'weight_decay': 1e-4,
+        'epochs': 80,
+        'patience': 20,  # Early stopping patience
+        'k_samples': 15000,  # Number of samples to use
+        'model_type': 'tiny',  # 'simple' or 'big'
+        'blur_kernel': 0,
+        # 'conv_kernel_size': 'adj',  # Kernel size for convolutional layers
+        'conv_kernel_size': 9,  # Kernel size for convolutional layers
+        'normalize': False  # Normalize images to Gaussian
+    }
+    cdm_file='/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy'
+    wdm_file='/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mtot_IllustrisTNG_WDM_z=0.00.npy'
+    print("=== Contrastive Learning Training ===")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    transform = get_contrastive_transform()
-    cdm_data = create_dummy_dataset(500, 0)
-    wdm_data = create_dummy_dataset(500, 1)
-    dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform=transform)
+    transform = TensorAugment(
+        size=(config['img_size'], config['img_size']),
+        p_flip=0.5, # No flipping and rotation for now
+        p_rot=0.5,
+        noise_std=0, # Stop noise temporarily
+        blur_kernel=config['blur_kernel'],
+        apply_log=True,  # Keep log scale
+        normalize=config['normalize']  # Normalize images to [0, 1]
+    )
+     # Sample indices
+    all_indices = random.sample(range(15000), config['k_samples'])
+    random.shuffle(all_indices)
+    
+    # Split data
+    train_ratio, val_ratio = 0.6, 0.2
+    total_samples = len(all_indices)
+    train_end = int(train_ratio * total_samples)
+    val_end = int((train_ratio + val_ratio) * total_samples)
+    
+    train_indices = all_indices[:train_end]
+    val_indices = all_indices[train_end:val_end]
+    test_indices = all_indices[val_end:]
+    
+    print(f"\nDataset split:")
+    print(f"Total: {total_samples}, Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)}")
+    
+    
+    cdm_data = load_dataset(cdm_file, train_indices, transform)
+    wdm_data = load_dataset(wdm_file, train_indices, transform)
+
+    dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform)
     loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
     model = ContrastiveCNN(WDMClassifierTiny()).to(device)

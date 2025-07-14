@@ -65,6 +65,7 @@ class WDMClassifierTiny(nn.Module):
             nn.BatchNorm2d(128),
             nn.ReLU()
         )
+        self.out_features = 64
 
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),  # [B, 128, 1, 1]
@@ -77,3 +78,4 @@ class WDMClassifierTiny(nn.Module):
         x = self.features(x)
         x = self.classifier(x)
         return x
+

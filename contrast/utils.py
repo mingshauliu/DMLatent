@@ -104,44 +104,50 @@ class CosmicWebDataset(Dataset):
 
 
 
-def load_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy'):
+def load_contrastive_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy'):
     """
-    Load CDM and WDM datasets from .npy files and create a PyTorch dataset
-    
+    Load CDM and WDM datasets and create contrastive pair dataset.
+
     Args:
-        indices: list of indices to use for sampling
+        indices: list of indices to use for both CDM and WDM data
         transform: optional transform to apply to samples
         cdm_file: path to CDM .npy file
         wdm_file: path to WDM .npy file
-    
+
     Returns:
-        CosmicWebDataset: PyTorch dataset containing CDM and WDM samples
+        CDMWDMPairDataset: Dataset that yields contrastive image pairs and labels
     """
     try:
-        # Load the data files
         print(f"Loading CDM data from {cdm_file}...")
-        cdm_data = np.load(cdm_file)
-        print(f"CDM data shape: {cdm_data.shape}")
-        
+        cdm_full = np.load(cdm_file)
+        print(f"CDM shape: {cdm_full.shape}")
+
         print(f"Loading WDM data from {wdm_file}...")
-        wdm_data = np.load(wdm_file)
-        print(f"WDM data shape: {wdm_data.shape}")
-        
-        # Validate data shapes
-        if len(cdm_data.shape) != 3 or len(wdm_data.shape) != 3:
-            raise ValueError("Data should have shape [N, H, W]")
-        
-        # Create and return dataset
-        dataset = CosmicWebDataset(cdm_data, wdm_data, indices, transform)
-        print(f"Created dataset with {len(dataset)} samples")
-        
+        wdm_full = np.load(wdm_file)
+        print(f"WDM shape: {wdm_full.shape}")
+
+        # Validate shape
+        if cdm_full.ndim != 3 or wdm_full.ndim != 3:
+            raise ValueError("Expected data shape: (N, H, W) for both CDM and WDM")
+
+        # Subset by provided indices
+        cdm_subset = cdm_full[indices]
+        wdm_subset = wdm_full[indices]
+
+        # Wrap as datasets with labels for contrastive sampling
+        cdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 0) for x in cdm_subset]
+        wdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 1) for x in wdm_subset]
+
+        dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform=transform)
+        print(f"Created contrastive pair dataset with {len(dataset)} samples")
+
         return dataset
-        
+
     except FileNotFoundError as e:
-        print(f"Error: Could not find data file - {e}")
+        print(f"[ERROR] File not found: {e}")
         raise
     except Exception as e:
-        print(f"Error loading dataset: {e}")
+        print(f"[ERROR] Failed to load contrastive dataset: {e}")
         raise
 
   
