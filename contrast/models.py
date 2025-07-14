@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision.models import resnet18
+import torch.nn.functional as F
 
 class ContrastiveCNN(nn.Module):
     def __init__(self, base_cnn, projection_dim=128):
