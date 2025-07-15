@@ -22,7 +22,7 @@ class UMAPCallback(Callback):
 
         plt.figure(figsize=(8, 6))
         sns.scatterplot(x=umap_proj[:, 0], y=umap_proj[:, 1], hue=y.numpy(),
-                        palette="coolwarm", s=5, alpha=0.8)
+                        palette="coolwarm", s=5, alpha=1.0)
         plt.title(f"UMAP at Epoch {epoch}")
         plt.legend(title="Label", loc="best")
         plt.tight_layout()

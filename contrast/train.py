@@ -39,10 +39,10 @@ def main():
         log_every_n_steps=10
     )
     
-    checkpoint_path = "/n/netscratch/iaifi_lab/Lab/msliu/contrast/lightning_logs/version_6/checkpoints/best-contrastive.ckpt"  
+    checkpoint_path = "/n/netscratch/iaifi_lab/Lab/msliu/contrast/lightning_logs/version_10/checkpoints/best-contrastive.ckpt"  
 
-    # trainer.fit(model, datamodule=dm, ckpt_path=checkpoint_path)
-    trainer.fit(model, datamodule=dm)
+    trainer.fit(model, datamodule=dm, ckpt_path=checkpoint_path)
+    # trainer.fit(model, datamodule=dm)
 
 if __name__ == "__main__":
     main()
