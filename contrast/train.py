@@ -11,7 +11,7 @@ def main():
         'lr': 5e-5,
         'weight_decay': 1e-4,
         'epochs': 80,
-        'patience': 5,  # Early stopping patience
+        'patience': 10,  # Early stopping patience
         'k_samples': 15000,
         'model_type': 'tiny',
         'blur_kernel': 0,

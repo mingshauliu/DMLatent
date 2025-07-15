@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.optim.lr_scheduler as lr_scheduler
 import pytorch_lightning as pl
 from models import ContrastiveCNN, NECTLoss, WDMClassifierTiny
 
@@ -35,8 +36,27 @@ class ContrastiveModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(
+        optimizer = torch.optim.Adam(
             self.parameters(),
             lr=self.hparams.lr,
             weight_decay=self.hparams.weight_decay
         )
+        
+        scheduler = lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode='min',
+            factor=0.5,
+            patience=5,
+            min_lr=1e-6
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "train_loss",  # or 'val_loss' if available
+                "interval": "epoch",
+                "frequency": 1,
+            }
+        }
+
