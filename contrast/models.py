@@ -22,6 +22,7 @@ class NECTLoss(nn.Module):
     def __init__(self, temperature=0.1):
         super().__init__()
         self.temperature = temperature
+        print(f"[INFO] Using NECTLoss with temperature = {self.temperature}")
 
     def forward(self, z_i, z_j, labels_i, labels_j):
         logits = torch.matmul(z_i, z_j.T) / self.temperature

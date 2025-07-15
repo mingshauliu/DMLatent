@@ -22,7 +22,9 @@ class ContrastiveModel(pl.LightningModule):
             print("[INFO] No pretrained weights provided, initializing from scratch")
             
         self.model = ContrastiveCNN(encoder)
-        self.loss_fn = NECTLoss()
+        self.loss_fn = NECTLoss(temperature=config.get('temperature', 0.1))
+        self.val_latents_list = []
+        self.val_labels_list = []
 
     def forward(self, x):
         return self.model(x)
@@ -34,6 +36,32 @@ class ContrastiveModel(pl.LightningModule):
         loss = self.loss_fn(z1, z2, y1, y2)
         self.log("train_loss", loss, prog_bar=True)
         return loss
+    
+    def validation_step(self, batch, batch_idx):
+        x1, x2, y1, y2 = batch
+        z1 = self(x1)
+        z2 = self(x2)
+        loss = self.loss_fn(z1, z2, y1, y2)
+        self.log("val_loss", loss, prog_bar=True)
+        
+        # Store for UMAP
+        self.val_latents_list.append(z1.detach().cpu())
+        self.val_latents_list.append(z2.detach().cpu())
+        self.val_labels_list.append(y1.detach().cpu())
+        self.val_labels_list.append(y2.detach().cpu())
+
+    
+    def on_validation_epoch_end(self):
+        if len(self.val_latents_list) == 0:
+            return  # no validation run
+
+        self.val_latents = torch.cat(self.val_latents_list, dim=0)
+        self.val_labels = torch.cat(self.val_labels_list, dim=0)
+
+        # Clear for next epoch
+        self.val_latents_list.clear()
+        self.val_labels_list.clear()
+
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
@@ -42,12 +70,18 @@ class ContrastiveModel(pl.LightningModule):
             weight_decay=self.hparams.weight_decay
         )
         
-        scheduler = lr_scheduler.ReduceLROnPlateau(
+        # scheduler = lr_scheduler.ReduceLROnPlateau(
+        #     optimizer,
+        #     mode='min',
+        #     factor=0.5,
+        #     patience=5,
+        #     min_lr=1e-6
+        # )
+        
+        scheduler = lr_scheduler.CosineAnnealingLR(
             optimizer,
-            mode='min',
-            factor=0.5,
-            patience=5,
-            min_lr=1e-6
+            T_max=self.hparams.epochs,
+            eta_min=1e-6
         )
 
         return {

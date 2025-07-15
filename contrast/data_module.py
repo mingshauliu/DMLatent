@@ -40,6 +40,17 @@ class ContrastiveDataModule(pl.LightningDataModule):
             cdm_file=self.cdm_file,
             wdm_file=self.wdm_file
         )
+        
+        self.val_dataset = load_contrastive_dataset(
+            self.val_indices, 
+            transform=self.transform,
+            cdm_file=self.cdm_file,
+            wdm_file=self.wdm_file
+        )
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.config['batch_size'], shuffle=True)
+    
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.config['batch_size'])
+
