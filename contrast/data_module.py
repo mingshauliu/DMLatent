@@ -2,7 +2,7 @@ import random
 import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-from utils import CDMWDMPairDataset, load_contrastive_dataset
+from utils import load_contrastive_dataset
 from transform import TensorAugment
 
 class ContrastiveDataModule(pl.LightningDataModule):
@@ -33,10 +33,13 @@ class ContrastiveDataModule(pl.LightningDataModule):
             apply_log=True,
             normalize=self.config['normalize']
         )
-
-        cdm_data = load_contrastive_dataset(self.cdm_file, self.train_indices, self.transform)
-        wdm_data = load_contrastive_dataset(self.wdm_file, self.train_indices, self.transform)
-        self.train_dataset = CDMWDMPairDataset(cdm_data, wdm_data)
+        
+        self.train_dataset = load_contrastive_dataset(
+            self.train_indices, 
+            transform=self.transform,
+            cdm_file=self.cdm_file,
+            wdm_file=self.wdm_file
+        )
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.config['batch_size'], shuffle=True)

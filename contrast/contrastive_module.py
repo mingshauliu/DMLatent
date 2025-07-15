@@ -7,7 +7,20 @@ class ContrastiveModel(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters(config)
-        self.model = ContrastiveCNN(WDMClassifierTiny())
+        
+        encoder = WDMClassifierTiny()
+        
+        if config['pretrained'] is not None:
+            encoder.load_state_dict(
+                torch.load(config['pretrained'], 
+                           map_location=self.device, 
+                           weights_only=True)
+                )
+            print(f"[INFO] Loaded pretrained weights from {config['pretrained']}")
+        else:
+            print("[INFO] No pretrained weights provided, initializing from scratch")
+            
+        self.model = ContrastiveCNN(encoder)
         self.loss_fn = NECTLoss()
 
     def forward(self, x):

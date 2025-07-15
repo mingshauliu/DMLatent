@@ -8,13 +8,13 @@ class ContrastiveCNN(nn.Module):
         super().__init__()
         self.encoder = base_cnn  # e.g., SimpleCNN or ResNet variant
         self.projector = nn.Sequential(
-            nn.Linear(self.encoder.out_features, 256),
+            nn.Linear(128, 256),
             nn.ReLU(),
             nn.Linear(256, projection_dim)
         )
 
     def forward(self, x):
-        features = self.encoder(x)
+        features = self.encoder.forward_features(x)
         embeddings = self.projector(features)
         return F.normalize(embeddings, dim=1)
 
@@ -66,16 +66,21 @@ class WDMClassifierTiny(nn.Module):
             nn.ReLU()
         )
         self.out_features = 64
-
+        
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),  # [B, 128, 1, 1]
             nn.Flatten(),
             nn.Dropout(dropout),
             nn.Linear(128, num_classes)
         )
+    def forward_features(self, x):
+        x = self.features(x)
+        x = F.adaptive_avg_pool2d(x, (1, 1))  # [B, 128, 1, 1]
+        x = x.view(x.size(0), -1)             # [B, 128]
+        return x
 
     def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
+        x = self.forward_features(x)
+        x = self.classifier[2:](x)  # Dropout + Linear
         return x
 

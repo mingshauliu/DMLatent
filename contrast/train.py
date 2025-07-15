@@ -11,13 +11,14 @@ def main():
         'lr': 5e-5,
         'weight_decay': 1e-4,
         'epochs': 80,
-        'patience': 20,
+        'patience': 5,  # Early stopping patience
         'k_samples': 15000,
         'model_type': 'tiny',
         'blur_kernel': 0,
         'normalize': False,
         'train_ratio': 0.6,
-        'val_ratio': 0.2
+        'val_ratio': 0.2,
+        'pretrained_path': "/n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_tiny.pt" # Path to pretrained model if needed
     }
 
     cdm_path = '/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy'
