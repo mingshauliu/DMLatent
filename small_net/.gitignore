@@ -2,4 +2,6 @@ __pycache__/
 *.err
 *.out
 .ipynb_checkpoints/
-*.pt
+best_cnn_model_blur_0_dilated.pt
+best_cnn_model_blur_0_tiny.pt
+best_cnn_model_blur_0_large.pt

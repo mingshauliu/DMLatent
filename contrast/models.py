@@ -6,9 +6,11 @@ import torch.nn.functional as F
 class ContrastiveCNN(nn.Module):
     def __init__(self, base_cnn, projection_dim=128):
         super().__init__()
-        self.encoder = base_cnn  # e.g., SimpleCNN or ResNet variant
+        self.encoder = base_cnn  # Base CNN for feature extraction
+        
+        # Projector head to map features to contrastive space
         self.projector = nn.Sequential(
-            nn.Linear(128, 256),
+            nn.Linear(base_cnn.out_features, 256),
             nn.ReLU(),
             nn.Linear(256, projection_dim)
         )
@@ -85,3 +87,101 @@ class WDMClassifierTiny(nn.Module):
         x = self.classifier[2:](x)  # Dropout + Linear
         return x
 
+class WDMClassifierMedium(nn.Module):
+    """Medium CNN for filament classification with more layers"""
+    def __init__(self, in_channels=1, num_classes=1, dropout=0.3):
+        super().__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(in_channels, 32, kernel_size=3, stride=1, padding=1),  # 256x256
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # 256x256
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # ↓ 128x128
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+
+            nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=2, dilation=2),  # same size
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+
+            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),  # ↓ 64x64
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=2, dilation=2),  # same
+            nn.BatchNorm2d(256),
+            nn.ReLU()
+        )
+        self.out_features = 256
+        
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),  # [B, 256, 1, 1]
+            nn.Flatten(),
+            nn.Dropout(dropout),
+            nn.Linear(256, num_classes)
+        )
+
+    def forward_features(self, x):
+        x = self.features(x)
+        x = F.adaptive_avg_pool2d(x, (1, 1))  # [B, 256, 1, 1]
+        x = x.view(x.size(0), -1)             # [B, 256]
+        return x
+
+    def forward(self, x):
+        x = self.forward_features(x)
+        x = self.classifier[2:](x)  # Dropout + Linear
+        return x
+    
+class WDMClassifierLarge(nn.Module):
+    """Large CNN for filament classification with deeper architecture"""
+    def __init__(self, in_channels=1, num_classes=1, dropout=0.3):
+        super().__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1),  # 256x256
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),  # 256x256
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+
+            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),  # ↓ 128x128
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=2, dilation=2),  # same size
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+
+            nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1),  # ↓ 64x64
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=2, dilation=2),  # same
+            nn.BatchNorm2d(512),
+            nn.ReLU()
+        )
+        self.out_features = 256
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),  # [B, 512, 1, 1]
+            nn.Flatten(),
+            nn.Dropout(dropout),
+            nn.Linear(512, num_classes)
+        )
+
+    def forward_features(self, x):
+        x = self.features(x)
+        x = F.adaptive_avg_pool2d(x, (1, 1))  # [B, 128, 1, 1]
+        x = x.view(x.size(0), -1)             # [B, 128]
+        return x
+
+    def forward(self, x):
+        x = self.forward_features(x)
+        x = self.classifier[2:](x)  # Dropout + Linear
+        return x

@@ -2,14 +2,21 @@ import torch
 import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
 import pytorch_lightning as pl
-from models import ContrastiveCNN, NECTLoss, WDMClassifierTiny
+from models import ContrastiveCNN, NECTLoss, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge
 
 class ContrastiveModel(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters(config)
         
-        encoder = WDMClassifierTiny()
+        if config['model_type'] == 'tiny':
+            encoder = WDMClassifierTiny()
+        elif config['model_type'] == 'medium':
+            encoder = WDMClassifierMedium()
+        elif config['model_type'] == 'large':
+            encoder = WDMClassifierLarge()
+        else:
+            raise ValueError(f"Unknown model type: {config['model_type']}")
         
         if config['pretrained_path'] is not None:
             checkpoint = torch.load(config["pretrained_path"], map_location="cpu", weights_only=True)

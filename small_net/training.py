@@ -24,12 +24,12 @@ def main():
         'img_size': 256,
         'dropout': 0.1,  # Dropout rate
         'batch_size': 64,
-        'lr': 1e-4,  # Learning rate
+        'lr': 3e-4,  # Learning rate
         'weight_decay': 1e-4,
         'epochs': 80,
         'patience': 20,  # Early stopping patience
         'k_samples': 15000,  # Number of samples to use
-        'model_type': 'tiny',  # 'tiny', 'medium', 'large', 'dilated'
+        'model_type': 'large',  # 'tiny', 'medium', 'large', 'dilated'
         'blur_kernel': 0, # Blur kernel size (0 for no blur)
         'conv_kernel_size': 9,  # Kernel size for convolutional layers
         'normalize': False  # Normalize images to Gaussian
