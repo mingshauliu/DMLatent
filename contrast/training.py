@@ -61,11 +61,12 @@ def train():
     print(f"Total: {total_samples}, Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)}")
     
     
-    cdm_data = load_dataset(cdm_file, train_indices, transform)
-    wdm_data = load_dataset(wdm_file, train_indices, transform)
+    train_dataset = load_contrastive_dataset(train_indices, transform=my_augment, 
+                                         cdm_file='path/to/cdm.npy', 
+                                         wdm_file='path/to/wdm.npy')
 
-    dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform)
-    loader = DataLoader(dataset, batch_size=32, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+
 
     model = ContrastiveCNN(WDMClassifierTiny()).to(device)
     loss_fn = NECTLoss()
