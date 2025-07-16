@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import time
 from utils import set_seed, load_dataset, plot_feature_maps, plot_training_progress, evaluate_model, extract_features
 from transform import TensorAugment, SimpleResize
-from models import WDMClassifierDilatedResNet, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge
+from models import WDMClassifierDilatedResNet, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge, WDMClassifierHuge
 
 def main():
     """Main training function"""
@@ -23,13 +23,13 @@ def main():
     config = {
         'img_size': 256,
         'dropout': 0.1,  # Dropout rate
-        'batch_size': 64,
-        'lr': 3e-4,  # Learning rate
+        'batch_size': 32,
+        'lr': 5e-4,  # Learning rate
         'weight_decay': 1e-4,
-        'epochs': 80,
+        'epochs': 100,
         'patience': 20,  # Early stopping patience
         'k_samples': 15000,  # Number of samples to use
-        'model_type': 'large',  # 'tiny', 'medium', 'large', 'dilated'
+        'model_type': 'huge',  # 'tiny', 'medium', 'large', 'huge'
         'blur_kernel': 0, # Blur kernel size (0 for no blur)
         'conv_kernel_size': 9,  # Kernel size for convolutional layers
         'normalize': False  # Normalize images to Gaussian
@@ -133,6 +133,12 @@ def main():
             dropout=config['dropout']
         ).to(device)
         print("Using WDMClassifierLarge")
+    elif config['model_type'] == 'huge':
+        model = WDMClassifierHuge(
+            num_classes=1,
+            dropout=config['dropout']
+        ).to(device)
+        print("Using WDMClassifierHuge")
     else:
         raise ValueError(f"Unknown model type: {config['model_type']}")
     

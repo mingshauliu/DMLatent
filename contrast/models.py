@@ -38,6 +38,34 @@ class NECTLoss(nn.Module):
         loss = -torch.sum(labels_match * torch.log(sim + 1e-8)) / labels_match.sum()
         return loss
 
+class NXTentLoss(nn.Module):
+    def __init__(self, temperature=0.1):
+        super().__init__()
+        self.temperature = temperature
+        self.cosine_similarity = nn.CosineSimilarity(dim=-1)
+        print(f"[INFO] Using NXTentLoss with temperature = {self.temperature}")
+
+    def forward(self, z1, z2, labels_i, labels_j):
+        N = z1.size(0)
+        z = torch.cat([z1, z2], dim=0)  # Concatenate both views
+        z = F.normalize(z, dim=1)  # Normalize embeddings
+        
+        sim_matrix = torch.matmul(z, z.T) / self.temperature
+        
+        mask = torch.eye(2 * N, device=z.device,dtype=torch.bool)
+        sim_matrix = sim_matrix.masked_fill(mask, -1e9)  # Mask diagonal to avoid self-comparison
+        
+        pos_pairs = torch.cat([
+            torch.arange(N,2*N),
+            torch.arange(0,N)
+        ]).to(z.device)
+        
+        sim_pos = sim_matrix[torch.arange(2*N),pos_pairs]
+        sim_total = torch.exp(sim_matrix).sum(dim=1)
+        loss = -torch.log(torch.exp(sim_pos) / (sim_total))
+        
+        return loss.mean()
+
 class WDMClassifierTiny(nn.Module):
     """Small CNN for filament classification without aggressive downsampling"""
     def __init__(self, in_channels=1, num_classes=1, dropout=0.3):
@@ -167,7 +195,9 @@ class WDMClassifierLarge(nn.Module):
             nn.BatchNorm2d(512),
             nn.ReLU()
         )
-        self.out_features = 256
+        
+        self.out_features = 512
+        
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),  # [B, 512, 1, 1]
             nn.Flatten(),

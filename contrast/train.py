@@ -8,20 +8,21 @@ def main():
     config = {
         'img_size': 256,
         'dropout': 0.1,
-        'batch_size': 64,
+        'batch_size': 32,
         'lr': 3e-4,
         'weight_decay': 1e-4,
         'epochs': 80,
         'patience': 10,  # Early stopping patience
         'k_samples': 15000,
-        'model_type': 'medium',  # 'tiny', 'medium', 'large', 'dilated'
+        'model_type': 'large',  # 'tiny', 'medium', 'large', 'dilated'
+        'loss_type': 'nxtent',  # 'nect' or 'nxtent'
         'blur_kernel': 0,
         'normalize': False,
         'train_ratio': 0.6,
         'val_ratio': 0.2,
         'temperature': 0.05,  # Temperature for contrastive loss
         # 'checkpoint_path' : "/n/netscratch/iaifi_lab/Lab/msliu/contrast/lightning_logs/version_10/checkpoints/best-contrastive.ckpt",  
-        'pretrained_path': "/n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_medium.pt"  # Set to None if no pretrained model is used
+        'pretrained_path': "/n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_large.pt"  # Set to None if no pretrained model is used
     }
 
     cdm_path = '/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy'

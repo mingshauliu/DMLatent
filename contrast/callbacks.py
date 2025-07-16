@@ -13,19 +13,22 @@ class UMAPCallback(Callback):
             return
 
         z = getattr(pl_module, "val_latents", None)
-        y = getattr(pl_module, "val_labels", None)
-        if z is None or y is None:
+        softscore = getattr(pl_module, "val_softscores", None)
+        if z is None or softscore is None:
             return
 
         reducer = umap.UMAP(n_components=2)
-        umap_proj = reducer.fit_transform(z.numpy())
+        umap_proj = reducer.fit_transform(z.cpu().numpy())
 
         plt.figure(figsize=(8, 6))
-        sns.scatterplot(x=umap_proj[:, 0], y=umap_proj[:, 1], hue=y.numpy(),
-                        palette="coolwarm", s=5, alpha=1.0)
-        plt.title(f"UMAP at Epoch {epoch}")
-        plt.legend(title="Label", loc="best")
+        sc = plt.scatter(umap_proj[:, 0], umap_proj[:, 1],
+                         c=softscore.cpu().numpy(), cmap="viridis", s=5, alpha=0.8)
+        plt.title(f"UMAP Colored by Softscore (Epoch {epoch})")
+        plt.colorbar(sc, label="Softscore (CDM→0, WDM→1)")
+        plt.xlabel("UMAP 1")
+        plt.ylabel("UMAP 2")
+        plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"umap_epoch_{epoch}.png")
+        plt.savefig(f"umap_softscore_epoch_{epoch}.png")
         plt.close()
         

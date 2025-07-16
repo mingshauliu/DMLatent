@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
 import pytorch_lightning as pl
-from models import ContrastiveCNN, NECTLoss, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge
+from models import ContrastiveCNN, NECTLoss, NXTentLoss, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge
 
 class ContrastiveModel(pl.LightningModule):
     def __init__(self, config):
@@ -29,9 +29,17 @@ class ContrastiveModel(pl.LightningModule):
             print("[INFO] No pretrained weights provided, initializing from scratch")
             
         self.model = ContrastiveCNN(encoder)
-        self.loss_fn = NECTLoss(temperature=config.get('temperature', 0.1))
+        
+        if config['loss_type'] == 'nect':
+            self.loss_fn = NECTLoss(temperature=config.get('temperature', 0.1))
+        elif config['loss_type'] == 'nxtent':
+            self.loss_fn = NXTentLoss(temperature=config.get('temperature', 0.1))
+        else:
+            raise ValueError(f"Unknown loss type: {config['loss_type']}")
+        
         self.val_latents_list = []
         self.val_labels_list = []
+        self.val_softscores_list = []
 
     def forward(self, x):
         return self.model(x)
@@ -45,17 +53,20 @@ class ContrastiveModel(pl.LightningModule):
         return loss
     
     def validation_step(self, batch, batch_idx):
-        x1, x2, y1, y2 = batch
+        x1, x2, y1, y2 = batch  # assume y1 and y2 are softscores
         z1 = self(x1)
         z2 = self(x2)
         loss = self.loss_fn(z1, z2, y1, y2)
         self.log("val_loss", loss, prog_bar=True)
-        
-        # Store for UMAP
+
+        # Store latents
         self.val_latents_list.append(z1.detach().cpu())
         self.val_latents_list.append(z2.detach().cpu())
-        self.val_labels_list.append(y1.detach().cpu())
-        self.val_labels_list.append(y2.detach().cpu())
+        
+        # Store softscores (use y1 and y2 directly if already soft)
+        self.val_softscores_list.append(y1.detach().cpu())
+        self.val_softscores_list.append(y2.detach().cpu())
+
 
     
     def on_validation_epoch_end(self):
@@ -63,11 +74,12 @@ class ContrastiveModel(pl.LightningModule):
             return  # no validation run
 
         self.val_latents = torch.cat(self.val_latents_list, dim=0)
-        self.val_labels = torch.cat(self.val_labels_list, dim=0)
+        self.val_softscores = torch.cat(self.val_softscores_list, dim=0)
 
         # Clear for next epoch
         self.val_latents_list.clear()
-        self.val_labels_list.clear()
+        self.val_softscores_list.clear()
+
 
 
     def configure_optimizers(self):
