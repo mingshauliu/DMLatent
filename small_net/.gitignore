@@ -5,3 +5,4 @@ __pycache__/
 best_cnn_model_blur_0_dilated.pt
 best_cnn_model_blur_0_tiny.pt
 best_cnn_model_blur_0_large.pt
+best_cnn_model_blur_0_huge.pt
