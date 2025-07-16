@@ -38,14 +38,16 @@ class ContrastiveDataModule(pl.LightningDataModule):
             self.train_indices, 
             transform=self.transform,
             cdm_file=self.cdm_file,
-            wdm_file=self.wdm_file
+            wdm_file=self.wdm_file,
+            pair_type=self.config.get('pair_type', 'CDMWDM')  # Default to 'CDMWDM' if not specified
         )
         
         self.val_dataset = load_contrastive_dataset(
             self.val_indices, 
             transform=self.transform,
             cdm_file=self.cdm_file,
-            wdm_file=self.wdm_file
+            wdm_file=self.wdm_file,
+            pair_type=self.config.get('pair_type', 'CDMWDM')  # Default to 'CDMWDM' if not specified
         )
 
     def train_dataloader(self):

@@ -15,6 +15,36 @@ def set_seed(seed=42):
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
 
+# Create a dataset for contrastive learning
+# This dataset will yield a traditional contrastive pair:
+# (x1, x2, label1, label2)
+# where x1 and x2 are two augmented views of the same image, and label1 and label2 are their corresponding labels.
+# This is suitable for training contrastive models like SimCLR
+# The idea is to guide the SimCLR model using pretrained classifier features
+# to learn subtle meaningful representations.
+
+class SimCLRDataset(torch.utils.data.Dataset):
+    def __init__(self, data, transform=None):
+        self.data = data
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        x = self.data[idx]
+        x = torch.from_numpy(x).float().unsqueeze(0)  # [1, H, W]
+
+        # Apply two *independent* transforms
+        x1 = self.transform(x.clone()) if self.transform else x.clone()
+        x2 = self.transform(x.clone()) if self.transform else x.clone()
+        
+        return x1, x2
+
+# Create a dataset for contrastive pairs, where each pair is either:
+# CDM-CDM, WDM-WDM (positive pairs)
+# or CDM-WDM (negative pair)
+# This allows for both positive and negative sampling in contrastive learning.
 class CDMWDMPairDataset(torch.utils.data.Dataset):
     def __init__(self, cdm_data, wdm_data, transform=None):
         self.cdm_data = cdm_data
@@ -104,7 +134,7 @@ class CosmicWebDataset(Dataset):
 
 
 
-def load_contrastive_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy'):
+def load_contrastive_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy', pair_type='CDMWDM'):
     """
     Load CDM and WDM datasets and create contrastive pair dataset.
 
@@ -134,11 +164,19 @@ def load_contrastive_dataset(indices, transform=None, cdm_file='cdm_data.npy', w
         cdm_subset = cdm_full[indices]
         wdm_subset = wdm_full[indices]
 
-        # Wrap as datasets with labels for contrastive sampling
-        cdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 0) for x in cdm_subset]
-        wdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 1) for x in wdm_subset]
+        if pair_type == 'CDMWDM':
+            # Wrap as datasets with labels for contrastive sampling
+            cdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 0) for x in cdm_subset]
+            wdm_data = [(torch.from_numpy(x).float().unsqueeze(0), 1) for x in wdm_subset]
 
-        dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform=transform)
+            dataset = CDMWDMPairDataset(cdm_data, wdm_data, transform=transform)
+        elif pair_type == 'SimCLR':   
+            # Use SimCLRDataset for contrastive pairs
+            all_data = np.concatenate([cdm_subset, wdm_subset], axis=0)
+            dataset = SimCLRDataset(all_data, transform=transform)
+        else:
+            raise ValueError(f"Unknown pair type: {pair_type}")
+        
         print(f"Created contrastive pair dataset with {len(dataset)} samples")
 
         return dataset
