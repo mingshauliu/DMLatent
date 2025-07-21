@@ -22,7 +22,7 @@ def main():
         'val_ratio': 0.2,
         'pair_type': 'SimCLR',  # Default to 'CDMWDM' if not specified
         'temperature': 0.05,  # Temperature for contrastive loss
-        'kl_weight': 0.1,  # KL divergence weight for supervised guidance
+        'kl_weight': 0.2,  # KL divergence weight for supervised guidance
         # 'checkpoint_path' : "/n/netscratch/iaifi_lab/Lab/msliu/contrast/lightning_logs/version_10/checkpoints/best-contrastive.ckpt",  
         'pretrained_path': "/n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_large.pt"  # Set to None if no pretrained model is used
     }
@@ -38,7 +38,7 @@ def main():
 
     trainer = pl.Trainer(
         max_epochs=config['epochs'],
-        callbacks=[early_stop, checkpoint, UMAPCallback(every_n_epochs=5)],
+        callbacks=[early_stop, checkpoint, UMAPCallback(every_n_epochs=2)],
         accelerator='auto',
         log_every_n_steps=10
     )

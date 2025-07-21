@@ -24,9 +24,9 @@ def main():
         'img_size': 256,
         'dropout': 0.1,  # Dropout rate
         'batch_size': 32,
-        'lr': 5e-4,  # Learning rate
+        'lr': 2e-4,  # Learning rate
         'weight_decay': 1e-4,
-        'epochs': 100,
+        'epochs': 90,
         'patience': 20,  # Early stopping patience
         'k_samples': 15000,  # Number of samples to use
         'model_type': 'huge',  # 'tiny', 'medium', 'large', 'huge'
