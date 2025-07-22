@@ -1,5 +1,3 @@
-# example_usage.py - How to use the enhanced dataset
-
 from data_module import EnhancedContrastiveDataModule
 from utils import organize_component_files, create_balanced_sampling_strategy
 

@@ -1,5 +1,3 @@
-# data_module.py - Enhanced version with multi-component support
-
 import random
 import torch
 from torch.utils.data import DataLoader
