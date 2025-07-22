@@ -1,3 +1,4 @@
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from data_module import EnhancedContrastiveDataModule
