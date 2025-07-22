@@ -10,7 +10,7 @@ def create_cosmology_focused_config():
     config = {
         # Base parameters
         'img_size': 256,
-        'batch_size': 32,  # Could try smaller batches for more cosmology pairs
+        'batch_size': 64,  # Could try smaller batches for more cosmology pairs
         'k_samples': 15000,
         'train_ratio': 0.6,
         'val_ratio': 0.2,
@@ -44,8 +44,8 @@ def create_cosmology_focused_config():
         'normalize': False,
         
         # Paths
-        'pretrained_path': "/n/netscratch/iaifi_lab/Lab/mslieu/small_net/best_cnn_model_blur_0_large.pt",
-        'data_root': '/n/netscratch/iaifi_lab/Lab/mslieu/',
+        'pretrained_path': "/n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_large.pt",
+        'data_root': '/n/netscratch/iaifi_lab/Lab/',
     }
     return config
 
@@ -183,9 +183,9 @@ def main():
         enable_checkpointing=True,
         enable_progress_bar=True,
         val_check_interval=1.0,
-        check_val_every_n_epoch=1,
+        check_val_every_n_epoch=1
         # Track cosmology metrics
-        track_grad_norm=2,
+        # track_grad_norm=2,
     )
     
     # Log hyperparameters

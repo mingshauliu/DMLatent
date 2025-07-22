@@ -1,4 +1,4 @@
-# enhanced_contrastive_module.py - Module with cosmology focus
+# enhanced_contrastive_module.py - Module with cosmology focus (FIXED)
 
 import torch
 import torch.nn as nn
@@ -7,6 +7,15 @@ import pytorch_lightning as pl
 import torch.nn.functional as F
 from models import ContrastiveCNN, WDMClassifierTiny, WDMClassifierMedium, WDMClassifierLarge
 from DM_coaching import CosmologyFocusedLoss, AdaptiveCosmologyWeights
+
+class SimCLRNormalize(nn.Module):
+    """L2‑normalise each sample along the feature dimension (SimCLR style)."""
+    def __init__(self, dim: int = 1, eps: float = 1e-12):
+        super().__init__()
+        self.dim, self.eps = dim, eps
+    def forward(self, x):
+        return F.normalize(x, p=2, dim=self.dim, eps=self.eps)
+
 
 class CosmologyEnhancedContrastiveModel(pl.LightningModule):
     def __init__(self, config):
@@ -37,15 +46,10 @@ class CosmologyEnhancedContrastiveModel(pl.LightningModule):
         
         self.model = ContrastiveCNN(encoder)
         
-        # Add cosmology-specific projection head
-        embedding_dim = getattr(encoder, 'out_features', 512)
-        self.cosmology_projector = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(0.1),
-            nn.Linear(embedding_dim // 2, 64),
-            nn.L2Norm(dim=1)
-        )
+        # DON'T create cosmology projector here - we'll create it dynamically
+        self.cosmology_projector = None
+        self._embedding_dim = None
+        print(f"[INFO] Cosmology projector will be created dynamically on first forward pass")
         
         # Cosmology-focused loss
         self.loss_fn = CosmologyFocusedLoss(
@@ -82,8 +86,22 @@ class CosmologyEnhancedContrastiveModel(pl.LightningModule):
         self.last_cosmology_silhouette = 0.0
 
     def forward(self, x):
-        base_embedding = self.model(x)
+        base_embedding = self.model(x)  # Gets actual embedding (128-dim)
+        
+        # Create cosmology projector on first forward pass with correct dimensions
+        if self.cosmology_projector is None:
+            self._embedding_dim = base_embedding.shape[1]
+            self.cosmology_projector = nn.Sequential(
+                nn.Linear(self._embedding_dim, max(32, self._embedding_dim // 2)),
+                nn.ReLU(),
+                nn.Dropout(0.1),
+                nn.Linear(max(32, self._embedding_dim // 2), 64),
+                SimCLRNormalize(dim=1)
+            ).to(base_embedding.device)
+            print(f"[INFO] Created cosmology projector for embedding dim: {self._embedding_dim}")
+        
         cosmology_embedding = self.cosmology_projector(base_embedding)
+        
         return {
             'base': base_embedding,
             'cosmology': cosmology_embedding
@@ -266,14 +284,18 @@ class CosmologyEnhancedContrastiveModel(pl.LightningModule):
         self.val_components_list.clear()
 
     def configure_optimizers(self):
-        # Separate learning rates for base model and cosmology projector
-        base_params = list(self.model.parameters())
-        cosmology_params = list(self.cosmology_projector.parameters())
+        # Get all trainable parameters
+        all_params = list(self.model.parameters())
         
-        optimizer = torch.optim.Adam([
-            {'params': base_params, 'lr': self.hparams.lr},
-            {'params': cosmology_params, 'lr': self.hparams.lr * 2}  # Higher LR for cosmology head
-        ], weight_decay=self.hparams.weight_decay)
+        # Add cosmology projector parameters if it exists
+        if self.cosmology_projector is not None:
+            all_params.extend(list(self.cosmology_projector.parameters()))
+        
+        optimizer = torch.optim.Adam(
+            all_params,
+            lr=self.hparams.lr,
+            weight_decay=self.hparams.weight_decay
+        )
         
         scheduler = lr_scheduler.CosineAnnealingLR(
             optimizer,

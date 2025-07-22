@@ -1,0 +1,31 @@
+batch_size: 64
+blur_kernel: 0
+cosmology_focus_epochs: 60
+cosmology_temperature: 0.03
+cosmology_warmup_epochs: 10
+data_root: /n/netscratch/iaifi_lab/Lab/
+dropout: 0.1
+epochs: 120
+hard_negative_weight: 3.0
+img_size: 256
+initial_weights:
+- 1.0
+- 0.5
+- 0.3
+k_samples: 15000
+loss_type: cosmology_focused
+lr: 0.0002
+model_type: large
+normalize: false
+num_workers: 4
+pair_type: MultiComponent
+patience: 25
+pretrained_guidance_weight: 2.0
+pretrained_path: /n/netscratch/iaifi_lab/Lab/msliu/small_net/best_cnn_model_blur_0_large.pt
+target_weights:
+- 0.6
+- 5.0
+- 0.1
+train_ratio: 0.6
+val_ratio: 0.2
+weight_decay: 0.0001
