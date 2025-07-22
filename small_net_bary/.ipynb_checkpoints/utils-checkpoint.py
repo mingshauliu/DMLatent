@@ -116,11 +116,11 @@ def load_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm
         if len(cdm_data.shape) != 3 or len(wdm_data.shape) != 3:
             raise ValueError("Data should have shape [N, H, W]")
         
-        if bary_file is not None:
-            subtract_bary = True
+        subtract_bary = True if bary_file is not None else False
         
         # Create and return dataset
-        dataset = CosmicWebDataset(cdm_data, wdm_data, indices, transform=transform, subtract_bary=subtract_bary,
+        dataset = CosmicWebDataset(cdm_data, wdm_data, indices, 
+                                   transform=transform, subtract_bary=subtract_bary,
                                    bary_cdm=bary_cdm_data if bary_file else None,
                                    bary_wdm=bary_wdm_data if bary_file else None)
         print(f"Created dataset with {len(dataset)} samples")
