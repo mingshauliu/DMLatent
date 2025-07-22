@@ -167,20 +167,20 @@ def organize_component_files(data_root):
     """
     component_files = {
         # Gas in both cosmologies
-        'gas_cdm': f'{data_root}/msliu/CMD/data/IllustrisTNG/Maps_Mgas_IllustrisTNG_LH_z=0.00.npy',
-        'gas_wdm': f'{data_root}/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mgas_IllustrisTNG_WDM_z=0.00.npy',
+        'gas_cdm': f'{data_root}msliu/CMD/data/IllustrisTNG/Maps_Mgas_IllustrisTNG_LH_z=0.00.npy',
+        'gas_wdm': f'{data_root}ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mgas_IllustrisTNG_WDM_z=0.00.npy',
         
         # Stars in both cosmologies
-        'stars_cdm': f'{data_root}/msliu/CMD/data/IllustrisTNG/Maps_Mstar_IllustrisTNG_LH_z=0.00.npy', 
-        'stars_wdm': f'{data_root}/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy',
+        'stars_cdm': f'{data_root}msliu/CMD/data/IllustrisTNG/Maps_Mstar_IllustrisTNG_LH_z=0.00.npy', 
+        'stars_wdm': f'{data_root}ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy',
         
         # Dark matter in both cosmologies
-        'dm_cdm': f'{data_root}/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy',
-        'dm_wdm': f'{data_root}/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy',
+        'dm_cdm': f'{data_root}msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy',
+        'dm_wdm': f'{data_root}ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy',
         
         # Total mass in both cosmologies
-        'total_cdm': f'{data_root}/msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy',
-        'total_wdm': f'{data_root}/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mtot_IllustrisTNG_WDM_z=0.00.npy',
+        'total_cdm': f'{data_root}msliu/CMD/data/IllustrisTNG/Maps_Mtot_IllustrisTNG_LH_z=0.00.npy',
+        'total_wdm': f'{data_root}ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mtot_IllustrisTNG_WDM_z=0.00.npy',
     }
     
     # Verify all files exist

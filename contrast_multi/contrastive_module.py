@@ -1,3 +1,5 @@
+# contrastive_module.py - Updated with hierarchical loss support
+
 import torch
 import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
@@ -120,16 +122,34 @@ class HierarchicalContrastiveModel(pl.LightningModule):
                 z1, z2, matter_type1, matter_type2, 
                 cosmology1, cosmology2, component1, component2
             )
-            # Log individual loss components
-            self.log("train_matter_loss", loss_components['matter_loss'], prog_bar=False)
-            self.log("train_cosmology_loss", loss_components['cosmology_loss'], prog_bar=False)
-            self.log("train_component_loss", loss_components['component_loss'], prog_bar=False)
+            # Log individual loss components with proper Lightning logging
+            self.log("train/total_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            self.log("train/matter_loss", loss_components['matter_loss'], on_step=True, on_epoch=True, prog_bar=False, logger=True)
+            self.log("train/cosmology_loss", loss_components['cosmology_loss'], on_step=True, on_epoch=True, prog_bar=False, logger=True)
+            self.log("train/component_loss", loss_components['component_loss'], on_step=True, on_epoch=True, prog_bar=False, logger=True)
+            
+            # Log hierarchy weights for adaptive loss
+            if hasattr(self.loss_fn, 'level_weights'):
+                for i, weight in enumerate(self.loss_fn.level_weights):
+                    level_names = ['matter', 'cosmology', 'component']
+                    self.log(f"train/weight_{level_names[i]}", weight, on_epoch=True, logger=True)
         else:
             loss = self.loss_fn(
                 z1, z2, matter_type1, matter_type2,
                 cosmology1, cosmology2, component1, component2
             )
+            self.log("train/total_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         
+        # Log learning rate
+        self.log("train/lr", self.optimizers().param_groups[0]['lr'], on_step=True, logger=True)
+        
+        # Log adaptive weights if using adaptive loss
+        if hasattr(self.loss_fn, 'matter_weight'):
+            self.log("train/adaptive_matter_weight", self.loss_fn.matter_weight, on_epoch=True, logger=True)
+            self.log("train/adaptive_cosmology_weight", self.loss_fn.cosmology_weight, on_epoch=True, logger=True)
+            self.log("train/adaptive_component_weight", self.loss_fn.component_weight, on_epoch=True, logger=True)
+        
+        # Legacy logging for backward compatibility
         self.log("train_loss", loss, prog_bar=True)
         return loss
     
@@ -139,6 +159,12 @@ class HierarchicalContrastiveModel(pl.LightningModule):
         z1 = self(x1)
         z2 = self(x2)
         loss = self.loss_fn(z1, z2, y1, y2)
+        
+        # Proper Lightning logging
+        self.log("train/total_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/lr", self.optimizers().param_groups[0]['lr'], on_step=True, logger=True)
+        
+        # Legacy logging
         self.log("train_loss", loss, prog_bar=True)
         return loss
     
@@ -190,8 +216,16 @@ class HierarchicalContrastiveModel(pl.LightningModule):
             
             alpha = self.config.get("alignment_weight", 0.1)
             loss = loss + alpha * loss_align
-            self.log("loss_alignment", loss_align)
+            
+            # Log auxiliary loss
+            self.log("train/alignment_loss", loss_align, on_step=True, on_epoch=True, logger=True)
+            self.log("train/alignment_weight", alpha, on_epoch=True, logger=True)
         
+        # Proper Lightning logging
+        self.log("train/total_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/lr", self.optimizers().param_groups[0]['lr'], on_step=True, logger=True)
+        
+        # Legacy logging
         self.log("train_loss", loss, prog_bar=True)
         return loss
     
@@ -215,17 +249,24 @@ class HierarchicalContrastiveModel(pl.LightningModule):
         
         # Compute validation loss
         if isinstance(self.loss_fn, MultiLevelContrastiveLoss):
-            loss, _ = self.loss_fn(
+            loss, loss_components = self.loss_fn(
                 z1, z2, matter_type1, matter_type2,
                 cosmology1, cosmology2, component1, component2
             )
+            # Log validation loss components
+            self.log("val/total_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+            self.log("val/matter_loss", loss_components['matter_loss'], on_step=False, on_epoch=True, logger=True, sync_dist=True)
+            self.log("val/cosmology_loss", loss_components['cosmology_loss'], on_step=False, on_epoch=True, logger=True, sync_dist=True)
+            self.log("val/component_loss", loss_components['component_loss'], on_step=False, on_epoch=True, logger=True, sync_dist=True)
         else:
             loss = self.loss_fn(
                 z1, z2, matter_type1, matter_type2,
                 cosmology1, cosmology2, component1, component2
             )
+            self.log("val/total_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         
-        self.log("val_loss", loss, prog_bar=True)
+        # Legacy logging for backward compatibility
+        self.log("val_loss", loss, prog_bar=True, sync_dist=True)
         
         # Store embeddings and labels for analysis
         self.val_latents_list.extend([z1.detach().cpu(), z2.detach().cpu()])
@@ -248,7 +289,10 @@ class HierarchicalContrastiveModel(pl.LightningModule):
             z1 = self(x1)
             z2 = self(x2)
             loss = self.loss_fn(z1, z2, y1, y2)
-            self.log("val_loss", loss, prog_bar=True)
+            
+            # Proper Lightning logging
+            self.log("val/total_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+            self.log("val_loss", loss, prog_bar=True, sync_dist=True)  # Legacy
             
             self.val_softscores_list.extend([y1.detach().cpu(), y2.detach().cpu()])
         else:  # SimCLR
@@ -256,7 +300,10 @@ class HierarchicalContrastiveModel(pl.LightningModule):
             z1 = self(x1)
             z2 = self(x2)
             loss_mix = self.loss_fn(z1, z2, None, None)
-            self.log("val_loss", loss_mix, prog_bar=True)
+            
+            # Proper Lightning logging
+            self.log("val/total_loss", loss_mix, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+            self.log("val_loss", loss_mix, prog_bar=True, sync_dist=True)  # Legacy
             
             with torch.no_grad():
                 logits1 = self.classifier(x1)

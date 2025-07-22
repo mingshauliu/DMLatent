@@ -1,3 +1,4 @@
+import torch
 from pytorch_lightning.callbacks import Callback
 import matplotlib.pyplot as plt
 import umap
@@ -150,10 +151,9 @@ class HierarchicalUMAPCallback(Callback):
     
     def _analyze_embedding_separation(self, embeddings, matter_types, cosmologies, components, epoch):
         """Analyze and log embedding separation quality"""
+        from sklearn.metrics import silhouette_score
+        
         try:
-            from sklearn.metrics import silhouette_score
-            import torch
-            
             # Silhouette scores for different hierarchy levels
             matter_silhouette = silhouette_score(embeddings.cpu().numpy(), matter_types.cpu().numpy())
             cosmology_silhouette = silhouette_score(embeddings.cpu().numpy(), cosmologies.cpu().numpy())
@@ -173,6 +173,13 @@ class HierarchicalUMAPCallback(Callback):
             else:
                 component_silhouette = 0.0
             
+            # Log metrics (if you have a logger)
+            metrics = {
+                f'embedding_separation/matter_silhouette': matter_silhouette,
+                f'embedding_separation/cosmology_silhouette': cosmology_silhouette,
+                f'embedding_separation/component_silhouette': component_silhouette,
+            }
+            
             # Print metrics
             print(f"\n=== Embedding Quality Metrics (Epoch {epoch}) ===")
             print(f"Matter type separation: {matter_silhouette:.3f}")
@@ -183,5 +190,9 @@ class HierarchicalUMAPCallback(Callback):
             print(f"Could not compute silhouette scores: {e}")
 
 
-# Backward compatibility alias
-UMAPCallback = HierarchicalUMAPCallback
+# Legacy callback for backward compatibility
+class UMAPCallback(HierarchicalUMAPCallback):
+    """Backward compatibility wrapper"""
+    def __init__(self, every_n_epochs=5):
+        super().__init__(every_n_epochs)
+        print("Using legacy UMAPCallback - consider upgrading to HierarchicalUMAPCallback")
