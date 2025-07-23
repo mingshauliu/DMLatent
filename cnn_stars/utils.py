@@ -61,7 +61,7 @@ class StarDataset(Dataset):
 
 
 
-def load_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy'):
+def load_dataset(indices=None, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm_data.npy'):
     """
     Load CDM and WDM datasets from .npy files and create a PyTorch dataset
     
@@ -89,7 +89,7 @@ def load_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm
             raise ValueError("Data should have shape [N, H, W]")
         
         # Create and return dataset
-        dataset = StarDataset(cdm_data, wdm_data, indices, transform)
+        dataset = StarDataset(cdm_data, wdm_data, indices=indices, transform=transform)
         print(f"Created dataset with {len(dataset)} samples")
         
         return dataset

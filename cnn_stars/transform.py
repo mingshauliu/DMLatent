@@ -22,10 +22,10 @@ class SimpleResize(nn.Module):
 
         if self.scaling_scheme == 'log':
             img = torch.log1p(img)
-            img = torch.log1p(img)
+
         elif self.scaling_scheme == 'tanh':
             img = torch.tanh(img)
-            img = torch.tanh(img)
+
         elif self.scaling_scheme == 'none':
             pass
             

@@ -18,11 +18,13 @@ from LClassifier import LClassifier
 def main():
     # === Config ===
     config = {
-        # Paths to individual boxes
+        # Paths to individual samples
         'sample_size': 15000,  # Number of boxes to sample
+        'cdm_file':'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mstar_IllustrisTNG_LH_z=0.00.npy',
+        'wdm_file':'/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy',
         
         # Model type
-        'model_type': 'tiny_downsample',  # Options: 'tiny', 'medium', 'large', 'huge', 'tiny_downsample'
+        'model_type': 'medium',  # Options: 'tiny', 'medium', 'large', 'huge', 'tiny_downsample'
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/medium_model.ckpt',
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/tiny_model.ckpt',
         'resume_from': None,  
@@ -37,26 +39,27 @@ def main():
         'dropout': 0.2,  # Dropout rate for the model
 
         # Scaling scheme for images: 'log', 'tanh', 'none'
-        'scaling_scheme': 'tanh',
+        'scaling_scheme': 'log',
+        'normalize': True,  # z-score normalization
     }
 
     # === Transform ===
-    normalise = SimpleResize(
+    normalize = SimpleResize(
         size=(256, 256),
         scaling_scheme=config.get('scaling_scheme', 'log'),
-        normalize=False
+        normalize=config.get('normalize', False)  
     )
 
     # === Dataset & Split ===
 
-    indices = random.sample(range(15000), k=config['sample_size'])  
-    indices = random.shuffle(indices)
-    
+    full_indices = random.sample(range(15000), k=config['sample_size'])  
+    random.shuffle(full_indices)
+
     full_dataset = load_dataset(
-        indices=indices, 
-        transform=normalise,
-        cdm_file='/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mstar_IllustrisTNG_LH_z=0.00.npy',
-        wdm_file='/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy'
+        indices=full_indices, 
+        transform=normalize,
+        cdm_file=config['cdm_file'],
+        wdm_file=config['wdm_file']
     )
 
     val_frac = config['val_split']
