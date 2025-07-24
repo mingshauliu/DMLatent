@@ -3,3 +3,4 @@ logs
 models
 *.err
 *.out
+.ipynb_checkpoints

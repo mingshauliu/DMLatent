@@ -8,7 +8,8 @@ from models import (
     WDMClassifierMedium,
     WDMClassifierLarge,
     WDMClassifierHuge,
-    WDMClassifierTinywithDownSampling
+    WDMClassifierTinywithDownSampling,
+    CNNAttentionPooling
 )
 
 class LClassifier(pl.LightningModule):
@@ -26,6 +27,8 @@ class LClassifier(pl.LightningModule):
             self.model = WDMClassifierLarge(dropout=dropout)
         elif model_type == 'huge':
             self.model = WDMClassifierHuge(dropout=dropout)
+        elif model_type == 'AttentionPooling':
+            self.model = CNNAttentionPooling(dropout=dropout)
         else:
             raise ValueError(f"Unsupported model_type: {model_type}")
 
@@ -44,14 +47,14 @@ class LClassifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=False)
-        self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
-        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=False)
-        self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         loss, acc = self._shared_step(batch)
@@ -68,13 +71,13 @@ class LClassifier(pl.LightningModule):
         scheduler = {
             "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer,
-                mode="min",        # minimize validation loss
+                mode="max",        # minimize validation loss
                 factor=0.5,        # halve the LR when plateauing
                 patience=5,        # wait 5 epochs of no improvement
                 verbose=True,
                 min_lr=1e-6
             ),
-            "monitor": "val_loss",  # must match the logged name
+            "monitor": "val_acc",  # must match the logged name
             "interval": "epoch",
             "frequency": 1
         }

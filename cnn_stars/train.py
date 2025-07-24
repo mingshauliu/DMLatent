@@ -24,19 +24,19 @@ def main():
         'wdm_file':'/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy',
         
         # Model type
-        'model_type': 'medium',  # Options: 'tiny', 'medium', 'large', 'huge', 'tiny_downsample'
+        'model_type': 'AttentionPooling',  # Options: 'tiny', 'medium', 'large', 'huge', 'SEAttention'
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/medium_model.ckpt',
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/tiny_model.ckpt',
         'resume_from': None,  
         
         # Training parameters
         'lr': 3e-4,
-        'weight_decay': 1e-3,
+        'weight_decay': 2e-3,
         'batch_size': 64,
         'val_split': 0.2,  # 20% of test set as validation
         'max_epochs': 80,
         'patience': 10,
-        'dropout': 0.2,  # Dropout rate for the model
+        'dropout': 0.25,  # Dropout rate for the model
 
         # Scaling scheme for images: 'log', 'tanh', 'none'
         'scaling_scheme': 'log',
@@ -106,10 +106,10 @@ def main():
 
     # === Early Stopping Callback ===
     early_stop_callback = EarlyStopping(
-        monitor="val_loss",
+        monitor="val_acc",
         patience=config['patience'],
         verbose=True,
-        mode="min"
+        mode="max"
     )
 
     # === Trainer ===
@@ -150,12 +150,11 @@ def main():
             x = x.to("cuda")
 
             # Get features before final FC
-            feats = model.model.features(x)  # [B, C, H, W]
-            pooled = F.adaptive_avg_pool2d(feats, 1).squeeze(-1).squeeze(-1)  # [B, C]
-            features.append(pooled.cpu())
+            feats = model.model.forward_features(x)  # [B, C, H, W]
+            features.append(feats.cpu())
 
             # Soft scores from final output
-            logits = model.model.classifier(feats).squeeze(1)  # [B]
+            logits = model.model.fc(feats).squeeze(1)  # [B]
             probs = torch.sigmoid(logits)
             softscores.append(probs.cpu())
 
