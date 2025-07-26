@@ -149,11 +149,12 @@ def main():
     labels = []
 
     with torch.no_grad():
-        for x, y in test_loader:
+        for x, xx, y in test_loader:
             x = x.to("cuda")
+            xx = xx.to('cuda')
 
             # Get features before final FC
-            feats = model.model.forward_features(x)  # [B, C, H, W]
+            feats = model.model.forward_features(x, xx)  # [B, C, H, W]
             features.append(feats.cpu())
 
             # Soft scores from final output
@@ -186,10 +187,12 @@ def main():
 
     
     # === Feature Map Visualization ===
-    sample_x, sample_y = next(iter(test_loader))
+    sample_x, sample_xx, sample_y = next(iter(test_loader))
     sample_x = sample_x.to("cuda")[:4]  # Take 4 samples
+    sample_xx = sample_xx.to("cuda")[:4]  # Take 4 samples
+
     with torch.no_grad():
-        fmap = model.model.features[0](sample_x)  # First conv layer output
+        fmap = model.model.features[0](sample_x, sample_xx)  # First conv layer output
         fmap = fmap.cpu()
 
     # Plot first 4 feature maps for the first image

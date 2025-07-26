@@ -24,7 +24,7 @@ def main():
         'wdm_file':'/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mstar_IllustrisTNG_WDM_z=0.00.npy',
         
         # Model type
-        'model_type': 'AttentionPooling',  # Options: 'tiny', 'medium', 'large', 'huge', 'SEAttention'
+        'model_type': 'vit',  # Options: 'vit'
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/medium_model.ckpt',
         # 'resume_from':'/n/netscratch/iaifi_lab/Lab/msliu/cnn_galaxy/models/tiny_model.ckpt',
         'resume_from': None,  
@@ -32,7 +32,7 @@ def main():
         # Training parameters
         'lr': 3e-4,
         'weight_decay': 2e-3,
-        'batch_size': 64,
+        'batch_size': 32,
         'val_split': 0.2,  # 20% of test set as validation
         'max_epochs': 80,
         'patience': 20,
