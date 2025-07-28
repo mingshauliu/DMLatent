@@ -13,7 +13,7 @@ class TensorAugment(nn.Module):
     
     def __init__(self, size=(256, 256), p_flip=0.5, p_rot=0.5,
                  noise_std=0.01, apply_log=True, blur_kernel=5,
-                 blur_sigma_range=(0.1, 1.5), normalize=False):
+                 blur_sigma_range=(0.1, 1.5), normalize=False, blur_sigma=None):
         super().__init__()
         self.size = size
         self.p_flip = p_flip
@@ -23,6 +23,7 @@ class TensorAugment(nn.Module):
         self.blur_kernel = blur_kernel
         self.blur_sigma_range = blur_sigma_range
         self.normalize = normalize
+        self.blur_sigma = blur_sigma
 
     def forward(self, img):  # img: [1, H, W] or [H, W]
         if img.dim() == 2:
@@ -47,9 +48,10 @@ class TensorAugment(nn.Module):
         # === Kornia Blur ===
         sigma = 0.0
         if self.blur_kernel > 0:
-            sigma = random.uniform(0.1,self.blur_sigma_range)
-            sigma_tensor = torch.tensor([[sigma, sigma]], device=img.device)
-            img = KF.gaussian_blur2d(img, (self.blur_kernel, self.blur_kernel), sigma=sigma_tensor)
+            sigma = random.uniform(0,self.blur_sigma_range) if self.blur_sigma is None else self.blur_sigma
+            if sigma > 0:
+                sigma_tensor = torch.tensor([[sigma, sigma]], device=img.device)
+                img = KF.gaussian_blur2d(img, (self.blur_kernel, self.blur_kernel), sigma=sigma_tensor)
 
         img = img.squeeze(0)  # [1, H, W]
 

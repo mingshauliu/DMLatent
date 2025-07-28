@@ -31,7 +31,7 @@ def main():
         'k_samples': 15000,  # Number of samples to use
         'model_type': 'large',  # 'tiny', 'medium', 'large', 'huge'
         'blur_kernel': 3, # Blur kernel sampling range (0,)
-        'blur_sigma_range': 0.25, # Blur kernel sigma has to be > 0.1
+        'blur_sigma_range': 0.5, # Blur kernel sigma has to be > 0.1
         'normalize': False  # Normalize images to Gaussian
     }
     
