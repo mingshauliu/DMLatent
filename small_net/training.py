@@ -29,7 +29,7 @@ def main():
         'epochs': 90,
         'patience': 20,  # Early stopping patience
         'k_samples': 15000,  # Number of samples to use
-        'model_type': 'huge',  # 'tiny', 'medium', 'large', 'huge'
+        'model_type': 'large',  # 'tiny', 'medium', 'large', 'huge'
         'blur_kernel': 0, # Blur kernel size (0 for no blur)
         'conv_kernel_size': 9,  # Kernel size for convolutional layers
         'normalize': False  # Normalize images to Gaussian

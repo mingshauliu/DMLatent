@@ -13,7 +13,7 @@ class TensorAugment(nn.Module):
     
     def __init__(self, size=(256, 256), p_flip=0.5, p_rot=0.5,
                  noise_std=0.01, apply_log=True, blur_kernel=5,
-                 blur_sigma_range=(0.1, 1.5), normalize=False, blur_sigma=None):
+                 blur_sigma_range=(0.1, 1.5), normalize_stats=None, blur_sigma=None):
         super().__init__()
         self.size = size
         self.p_flip = p_flip
@@ -22,7 +22,7 @@ class TensorAugment(nn.Module):
         self.apply_log = apply_log
         self.blur_kernel = blur_kernel
         self.blur_sigma_range = blur_sigma_range
-        self.normalize = normalize
+        self.normalize_stats = normalize_stats
         self.blur_sigma = blur_sigma
 
     def forward(self, img):  # img: [1, H, W] or [H, W]
@@ -48,7 +48,7 @@ class TensorAugment(nn.Module):
         # === Kornia Blur ===
         sigma = 0.0
         if self.blur_kernel > 0:
-            sigma = random.uniform(0,self.blur_sigma_range) if self.blur_sigma is None else self.blur_sigma
+            sigma = random.uniform(self.blur_sigma_range[0],self.blur_sigma_range[1]) if self.blur_sigma is None else self.blur_sigma
             if sigma > 0:
                 sigma_tensor = torch.tensor([[sigma, sigma]], device=img.device)
                 img = KF.gaussian_blur2d(img, (self.blur_kernel, self.blur_kernel), sigma=sigma_tensor)
@@ -59,21 +59,21 @@ class TensorAugment(nn.Module):
             img = torch.clamp(img, min=0)
             img = torch.log1p(img)
 
-        if self.normalize:
-            img = (img - img.mean()) / img.std()
+        if self.normalize_stats is not None:
+            img = (img - self.normalize_stats['mean']) / self.normalize_stats['std']
 
         return img, sigma
 
 class ResizeBlur(nn.Module):
     """Simple resize transform for validation/test sets (with optional blur)"""
     
-    def __init__(self, size=(256, 256), apply_log=True, normalize=False,
+    def __init__(self, size=(256, 256), apply_log=True, normalize_stats=None,
                  blur_kernel=0, blur_sigma_range=None):
         
         super().__init__()
         self.size = size
         self.apply_log = apply_log
-        self.normalize = normalize
+        self.normalize_stats = normalize_stats
         self.blur_kernel = blur_kernel
         self.blur_sigma_range = blur_sigma_range
 
@@ -89,7 +89,7 @@ class ResizeBlur(nn.Module):
         sigma = 0.0
         if self.blur_kernel > 0:
             if self.blur_sigma_range is not None:
-                sigma = random.uniform(0.1,self.blur_sigma_range)
+                sigma = random.uniform(self.blur_sigma_range[0],self.blur_sigma_range[1])
 
             if sigma > 0:
                 sigma_tensor = torch.tensor([[sigma, sigma]], device=img.device)
@@ -101,7 +101,7 @@ class ResizeBlur(nn.Module):
             img = torch.clamp(img, min=0)
             img = torch.log1p(img)
 
-        if self.normalize:
-            img = (img - img.mean()) / img.std()
+        if self.normalize_stats is not None:
+            img = (img - self.normalize_stats['mean']) / self.normalize_stats['std']
 
         return img, sigma

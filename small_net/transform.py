@@ -46,7 +46,7 @@ class TensorAugment(nn.Module):
     """Data augmentation module for tensors"""
     
     def __init__(self, size=(256, 256), p_flip=0.5, p_rot=0.5,
-                 noise_std=0.01, apply_log=True, blur_kernel=5, blur_sigma=1.0, normalize=False):
+                 noise_std=0.01, apply_log=True, blur_kernel=5, blur_sigma=1.0, normalize=None):
         super().__init__()
         self.size = size
         self.p_flip = p_flip
@@ -90,8 +90,8 @@ class TensorAugment(nn.Module):
             img = torch.clamp(img, min=0)
             img = torch.log1p(img)
             
-        if self.normalize:
-            img = (img - img.mean()) / img.std() # Normalize to zero mean and unit variance
+        if self.normalize is not None:
+            img = (img - self.normalize['mean']) / self.normalize['std'] # z-score normalisation 
 
         return img
 
@@ -99,7 +99,7 @@ class TensorAugment(nn.Module):
 class SimpleResize(nn.Module):
     """Simple resize transform for validation/test sets (no augmentation)"""
     
-    def __init__(self, size=(256, 256), apply_log=True, normalize=False):
+    def __init__(self, size=(256, 256), apply_log=True, normalize=None):
         super().__init__()
         self.size = size
         self.apply_log = apply_log
@@ -116,7 +116,7 @@ class SimpleResize(nn.Module):
             img = torch.clamp(img, min=0)
             img = torch.log1p(img)
             
-        if self.normalize:
-            img = (img - img.mean()) / img.std() # Normalize to zero mean and unit variance
+        if self.normalize is not None:
+            img = (img - self.normalize['mean']) / self.normalize['std'] # z-score normalisation 
             
         return img.squeeze(0)

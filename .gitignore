@@ -5,3 +5,12 @@ small_net copy/best_cnn_model_blur_0_dilated.pt
 small_net/best_cnn_model_blur_0_dilated.pt
 small_net copy/best_cnn_model_blur_0_dilated.pt
 vit_stars
+data
+anomaly_det_model.py
+anomaly_detetection*
+*.npy
+*.png
+*.pth
+anomaly_detection.ipynb
+*.py
+*.txt

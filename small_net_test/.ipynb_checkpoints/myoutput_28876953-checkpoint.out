@@ -1,0 +1,29 @@
+=== CNN Training ===
+Configuration: {'img_size': 256, 'dropout': 0.1, 'batch_size': 32, 'lr': 0.0002, 'weight_decay': 0.0001, 'epochs': 90, 'patience': 20, 'k_samples': 15000, 'model_type': 'large', 'map_type': 'cdm', 'data_type': 'sid', 'blur_kernel': 0, 'conv_kernel_size': 9, 'normalize': False}
+Warning: WDM_TNG_MW_SB4.txt not found, using random indices
+
+Dataset split:
+Total: 15000, Train: 9000, Val: 3000, Test: 3000
+
+Loading datasets...
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 18000 samples
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 6000 samples
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 6000 samples
+Data loaders created: Train=563, Val=188, Test=188 batches
+Using device: cuda
+Using WDMClassifierLarge
+Model parameters: 4,503,681 total, 4,503,681 trainable
+
+Starting training for 90 epochs...

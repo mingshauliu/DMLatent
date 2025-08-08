@@ -37,14 +37,16 @@ class CosmicWebDataset(Dataset):
         self.labels = []
         
         for idx in indices:
-            if idx < len(cdm_data):
-                self.samples.append(('cdm', idx))
-                self.labels.append(0.0)  # CDM = 0
+            if cdm_data is not None:
+                if idx < len(cdm_data):
+                    self.samples.append(('cdm', idx))
+                    self.labels.append(0.0)  # CDM = 0
                 # self.labels.append(0.05)  # CDM = 0.05 for balanced dataset
-            if idx < len(wdm_data):
-                self.samples.append(('wdm', idx))
-                self.labels.append(1.0)  # WDM = 1
-                # self.labels.append(0.95)  # WDM = 0.95 for balanced dataset
+            if wdm_data is not None:
+                if idx < len(wdm_data):
+                    self.samples.append(('wdm', idx))
+                    self.labels.append(1.0)  # WDM = 1
+                    # self.labels.append(0.95)  # WDM = 0.95 for balanced dataset
     
     def __len__(self):
         return len(self.samples)
@@ -89,17 +91,27 @@ def load_dataset(indices, transform=None, cdm_file='cdm_data.npy', wdm_file='wdm
     """
     try:
         # Load the data files
-        print(f"Loading CDM data from {cdm_file}...")
-        cdm_data = np.load(cdm_file)
-        print(f"CDM data shape: {cdm_data.shape}")
-        
-        print(f"Loading WDM data from {wdm_file}...")
-        wdm_data = np.load(wdm_file)
-        print(f"WDM data shape: {wdm_data.shape}")
+        if cdm_file is not None:
+            print(f"Loading CDM data from {cdm_file}...")
+            cdm_data = np.load(cdm_file)
+            print(f"CDM data shape: {cdm_data.shape}")
+        else:
+            cdm_data = None
+            print("CDM file not provided, creating WDM-only dataset")
+
+        if wdm_file is not None:
+            print(f"Loading WDM data from {wdm_file}...")
+            wdm_data = np.load(wdm_file)
+            print(f"WDM data shape: {wdm_data.shape}")
+        else: 
+            wdm_data = None
+            print("WDM file not provided, creating CDM-only dataset")
         
         # Validate data shapes
-        if len(cdm_data.shape) != 3 or len(wdm_data.shape) != 3:
-            raise ValueError("Data should have shape [N, H, W]")
+        if cdm_data is not None and len(cdm_data.shape) != 3:
+            raise ValueError("CDM data should have shape [N, H, W]")
+        if wdm_data is not None and len(wdm_data.shape) != 3:
+            raise ValueError("WDM data should have shape [N, H, W]")
         
         # Create and return dataset
         dataset = CosmicWebDataset(cdm_data, wdm_data, indices, transform)

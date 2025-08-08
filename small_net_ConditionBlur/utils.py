@@ -157,7 +157,7 @@ def plot_feature_maps(model, data_loader, device, save_path='feature_maps_cnn.pn
     """Visualize feature maps from the first convolutional layer"""
     model.eval()
     with torch.no_grad():
-        for images, _ in data_loader:
+        for images, sigmas, _ in data_loader:
             images = images[:1].to(device)  # Take first image
             
             # Get feature maps from first conv layer

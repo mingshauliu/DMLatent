@@ -1,0 +1,232 @@
+=== CNN Training ===
+Configuration: {'img_size': 256, 'dropout': 0.1, 'batch_size': 32, 'lr': 0.0002, 'weight_decay': 0.0001, 'epochs': 90, 'patience': 20, 'k_samples': 15000, 'model_type': 'large', 'map_type': 'cdm', 'data_type': 'sid', 'blur_kernel': 0, 'conv_kernel_size': 9, 'normalize': False}
+Warning: WDM_TNG_MW_SB4.txt not found, using random indices
+
+Dataset split:
+Total: 15000, Train: 9000, Val: 3000, Test: 3000
+
+Loading datasets...
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 18000 samples
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 6000 samples
+Loading CDM data from /n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mcdm_IllustrisTNG_LH_z=0.00.npy...
+CDM data shape: (15000, 256, 256)
+Loading WDM data from /n/netscratch/iaifi_lab/Lab/msliu/Maps_Mcdm_IllustrisTNG_WDM_z=0.00.npy...
+WDM data shape: (15000, 256, 256)
+Created dataset with 6000 samples
+Data loaders created: Train=563, Val=188, Test=188 batches
+Using device: cuda
+Using WDMClassifierLarge
+Model parameters: 4,503,681 total, 4,503,681 trainable
+
+Starting training for 90 epochs...
+  First batch time: 1.765s
+  Iterations/sec: 116.67, Total epoch time: 154.28s
+Epoch   1: Train Loss=0.6947, Train Acc=0.5084, Val Loss=0.7641, Val Acc=0.5000
+  -> New best model saved (Val Acc: 0.5000)
+  First batch time: 0.273s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch   2: Train Loss=0.6847, Train Acc=0.5389, Val Loss=0.8106, Val Acc=0.4987
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch   3: Train Loss=0.6755, Train Acc=0.5521, Val Loss=1.1321, Val Acc=0.5000
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.29s
+Epoch   4: Train Loss=0.6703, Train Acc=0.5608, Val Loss=0.8529, Val Acc=0.5005
+  -> New best model saved (Val Acc: 0.5005)
+  First batch time: 0.273s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch   5: Train Loss=0.6684, Train Acc=0.5632, Val Loss=1.5325, Val Acc=0.5000
+  First batch time: 0.273s
+  Iterations/sec: 118.17, Total epoch time: 152.32s
+Epoch   6: Train Loss=0.6627, Train Acc=0.5772, Val Loss=0.8589, Val Acc=0.5063
+  -> New best model saved (Val Acc: 0.5063)
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.30s
+Epoch   7: Train Loss=0.6622, Train Acc=0.5784, Val Loss=0.6995, Val Acc=0.5595
+  -> New best model saved (Val Acc: 0.5595)
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch   8: Train Loss=0.6619, Train Acc=0.5818, Val Loss=0.6544, Val Acc=0.5685
+  -> New best model saved (Val Acc: 0.5685)
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch   9: Train Loss=0.6603, Train Acc=0.5827, Val Loss=0.7134, Val Acc=0.5055
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  10: Train Loss=0.6566, Train Acc=0.5833, Val Loss=0.6953, Val Acc=0.5735
+  -> New best model saved (Val Acc: 0.5735)
+  First batch time: 0.271s
+  Iterations/sec: 118.17, Total epoch time: 152.32s
+Epoch  11: Train Loss=0.6547, Train Acc=0.5933, Val Loss=2.0038, Val Acc=0.5000
+  First batch time: 0.271s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  12: Train Loss=0.6529, Train Acc=0.5906, Val Loss=0.8569, Val Acc=0.4978
+  First batch time: 0.272s
+  Iterations/sec: 118.17, Total epoch time: 152.32s
+Epoch  13: Train Loss=0.6473, Train Acc=0.6044, Val Loss=0.7692, Val Acc=0.5207
+  First batch time: 0.273s
+  Iterations/sec: 118.14, Total epoch time: 152.36s
+Epoch  14: Train Loss=0.4555, Train Acc=0.8036, Val Loss=0.2298, Val Acc=0.9332
+  -> New best model saved (Val Acc: 0.9332)
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch  15: Train Loss=0.1205, Train Acc=0.9788, Val Loss=0.0716, Val Acc=0.9910
+  -> New best model saved (Val Acc: 0.9910)
+  First batch time: 0.272s
+  Iterations/sec: 118.17, Total epoch time: 152.33s
+Epoch  16: Train Loss=0.0603, Train Acc=0.9889, Val Loss=0.0422, Val Acc=0.9905
+  First batch time: 0.273s
+  Iterations/sec: 118.14, Total epoch time: 152.36s
+Epoch  17: Train Loss=0.0418, Train Acc=0.9913, Val Loss=0.0402, Val Acc=0.9903
+  First batch time: 0.272s
+  Iterations/sec: 118.17, Total epoch time: 152.32s
+Epoch  18: Train Loss=0.0273, Train Acc=0.9943, Val Loss=0.0204, Val Acc=0.9965
+  -> New best model saved (Val Acc: 0.9965)
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.30s
+Epoch  19: Train Loss=0.0254, Train Acc=0.9929, Val Loss=0.0109, Val Acc=0.9990
+  -> New best model saved (Val Acc: 0.9990)
+  First batch time: 0.271s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch  20: Train Loss=0.0152, Train Acc=0.9962, Val Loss=0.0063, Val Acc=0.9993
+  -> New best model saved (Val Acc: 0.9993)
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  21: Train Loss=0.0187, Train Acc=0.9947, Val Loss=0.0052, Val Acc=0.9992
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  22: Train Loss=0.0112, Train Acc=0.9971, Val Loss=0.0055, Val Acc=0.9987
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.30s
+Epoch  23: Train Loss=0.0100, Train Acc=0.9976, Val Loss=0.0042, Val Acc=0.9992
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  24: Train Loss=0.0085, Train Acc=0.9981, Val Loss=0.0054, Val Acc=0.9990
+  First batch time: 0.272s
+  Iterations/sec: 118.21, Total epoch time: 152.27s
+Epoch  25: Train Loss=0.0075, Train Acc=0.9979, Val Loss=0.0061, Val Acc=0.9983
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch  26: Train Loss=0.0070, Train Acc=0.9982, Val Loss=0.0038, Val Acc=0.9988
+  First batch time: 0.272s
+  Iterations/sec: 118.21, Total epoch time: 152.27s
+Epoch  27: Train Loss=0.0117, Train Acc=0.9962, Val Loss=0.0024, Val Acc=0.9993
+  First batch time: 0.271s
+  Iterations/sec: 118.16, Total epoch time: 152.33s
+Epoch  28: Train Loss=0.0047, Train Acc=0.9986, Val Loss=0.0018, Val Acc=0.9997
+  -> New best model saved (Val Acc: 0.9997)
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  29: Train Loss=0.0091, Train Acc=0.9972, Val Loss=0.0021, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  30: Train Loss=0.0044, Train Acc=0.9991, Val Loss=0.0023, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  31: Train Loss=0.0039, Train Acc=0.9990, Val Loss=0.0023, Val Acc=0.9993
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  32: Train Loss=0.0042, Train Acc=0.9988, Val Loss=0.0020, Val Acc=0.9993
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  33: Train Loss=0.0079, Train Acc=0.9977, Val Loss=0.0037, Val Acc=0.9990
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch  34: Train Loss=0.0040, Train Acc=0.9989, Val Loss=0.0031, Val Acc=0.9995
+  First batch time: 0.272s
+  Iterations/sec: 118.16, Total epoch time: 152.33s
+Epoch  35: Train Loss=0.0029, Train Acc=0.9994, Val Loss=0.0016, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch  36: Train Loss=0.0028, Train Acc=0.9993, Val Loss=0.0011, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch  37: Train Loss=0.0017, Train Acc=0.9997, Val Loss=0.0015, Val Acc=0.9995
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.29s
+Epoch  38: Train Loss=0.0014, Train Acc=0.9997, Val Loss=0.0009, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.32s
+Epoch  39: Train Loss=0.0016, Train Acc=0.9997, Val Loss=0.0021, Val Acc=0.9993
+  First batch time: 0.273s
+  Iterations/sec: 118.21, Total epoch time: 152.27s
+Epoch  40: Train Loss=0.0022, Train Acc=0.9992, Val Loss=0.0010, Val Acc=0.9998
+  -> New best model saved (Val Acc: 0.9998)
+  First batch time: 0.272s
+  Iterations/sec: 118.21, Total epoch time: 152.27s
+Epoch  41: Train Loss=0.0016, Train Acc=0.9996, Val Loss=0.0016, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.20, Total epoch time: 152.29s
+Epoch  42: Train Loss=0.0023, Train Acc=0.9993, Val Loss=0.0022, Val Acc=0.9990
+  First batch time: 0.271s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch  43: Train Loss=0.0021, Train Acc=0.9994, Val Loss=0.0011, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.23, Total epoch time: 152.25s
+Epoch  44: Train Loss=0.0013, Train Acc=0.9994, Val Loss=0.0012, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.22, Total epoch time: 152.26s
+Epoch  45: Train Loss=0.0008, Train Acc=0.9998, Val Loss=0.0008, Val Acc=0.9998
+  First batch time: 0.273s
+  Iterations/sec: 118.17, Total epoch time: 152.33s
+Epoch  46: Train Loss=0.0011, Train Acc=0.9995, Val Loss=0.0008, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.29s
+Epoch  47: Train Loss=0.0008, Train Acc=0.9998, Val Loss=0.0009, Val Acc=0.9997
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.30s
+Epoch  48: Train Loss=0.0005, Train Acc=0.9998, Val Loss=0.0006, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.11, Total epoch time: 152.40s
+Epoch  49: Train Loss=0.0006, Train Acc=0.9999, Val Loss=0.0018, Val Acc=0.9995
+  First batch time: 0.273s
+  Iterations/sec: 118.19, Total epoch time: 152.30s
+Epoch  50: Train Loss=0.0003, Train Acc=0.9999, Val Loss=0.0011, Val Acc=0.9995
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  51: Train Loss=0.0010, Train Acc=0.9998, Val Loss=0.0012, Val Acc=0.9995
+  First batch time: 0.273s
+  Iterations/sec: 118.17, Total epoch time: 152.32s
+Epoch  52: Train Loss=0.0010, Train Acc=0.9997, Val Loss=0.0010, Val Acc=0.9997
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  53: Train Loss=0.0004, Train Acc=0.9999, Val Loss=0.0009, Val Acc=0.9997
+  First batch time: 0.273s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  54: Train Loss=0.0008, Train Acc=0.9998, Val Loss=0.0008, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.19, Total epoch time: 152.30s
+Epoch  55: Train Loss=0.0005, Train Acc=0.9999, Val Loss=0.0006, Val Acc=0.9997
+  First batch time: 0.273s
+  Iterations/sec: 118.19, Total epoch time: 152.29s
+Epoch  56: Train Loss=0.0005, Train Acc=0.9999, Val Loss=0.0007, Val Acc=0.9997
+  First batch time: 0.272s
+  Iterations/sec: 118.18, Total epoch time: 152.31s
+Epoch  57: Train Loss=0.0006, Train Acc=0.9998, Val Loss=0.0006, Val Acc=0.9998
+  First batch time: 0.271s
+  Iterations/sec: 118.19, Total epoch time: 152.30s
+Epoch  58: Train Loss=0.0004, Train Acc=0.9999, Val Loss=0.0005, Val Acc=0.9998
+  First batch time: 0.271s
+  Iterations/sec: 118.20, Total epoch time: 152.28s
+Epoch  59: Train Loss=0.0003, Train Acc=1.0000, Val Loss=0.0006, Val Acc=0.9998
+  First batch time: 0.272s
+  Iterations/sec: 118.14, Total epoch time: 152.37s
+Epoch  60: Train Loss=0.0004, Train Acc=0.9999, Val Loss=0.0005, Val Acc=0.9998
+Early stopping triggered after 60 epochs
+
+Loading best model for final evaluation...
+
+Final Results:
+Best Val Acc: 0.9998
+Test Acc: 1.0000
+Feature maps saved as 'cnn_feature_maps_blur_cdm_sid.png'
+
+Training completed!
