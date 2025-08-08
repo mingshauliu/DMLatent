@@ -4,3 +4,4 @@ lightning_logs
 *.err
 .ipynb_checkpoints
 wandb
+logs
