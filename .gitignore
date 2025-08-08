@@ -12,5 +12,5 @@ anomaly_detetection*
 *.png
 *.pth
 anomaly_detection.ipynb
-*.py
 *.txt
+data.py
