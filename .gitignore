@@ -14,3 +14,9 @@ anomaly_detetection*
 anomaly_detection.ipynb
 *.txt
 data.py
+small_net_stars/
+small_net_test/
+flow_cond1/
+flow_cond2/
+.ipynb_checkpoints/
+ADC/
