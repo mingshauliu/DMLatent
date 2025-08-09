@@ -1,0 +1,7 @@
+__pycache__
+lightning_logs
+*.out
+*.err
+.ipynb_checkpoints
+wandb
+logs
