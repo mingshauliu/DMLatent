@@ -132,7 +132,9 @@ class FlowMatchingModel(pl.LightningModule):
         # Sample random times
         t = self.sample_time(batch_size, device)
         
-        x0 = total_mass
+        noise = torch.randn_like(total_mass)*self.noise_std # Gaussian noise mean=0, std=0.5 by default
+
+        x0 = total_mass + noise
         x1 = star_map
         
         # Interpolate
@@ -160,15 +162,15 @@ class FlowMatchingModel(pl.LightningModule):
             'lr_scheduler': scheduler,
             'monitor': 'val_loss'
         }
-    
-    def sample(self, total_mass_condition, num_steps=100, method='euler'):
+        
+    def sample(self, total_mass, total_mass_condition, num_steps=100, method='euler'):
         """Generate star maps from total mass maps using the learned flow"""
         self.eval()
         device = next(self.parameters()).device
-        batch_size = total_mass_condition.size(0)
+        batch_size = total_mass.size(0)
         
         # Initialize x at time t = 0
-        x = total_mass_condition.clone()  # ensure x and condition aren't shared
+        x = total_mass.clone()  # ensure x and condition aren't shared
         dt = 1.0 / num_steps
         
         with torch.no_grad():

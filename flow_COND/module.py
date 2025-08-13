@@ -193,6 +193,5 @@ class FlowMatchingModel(pl.LightningModule):
                     x = x + dt * field_change
                 else:
                     raise ValueError("Only 'euler' method implemented")
-        print(f"Final x shape: {x.shape}")
         return x
 

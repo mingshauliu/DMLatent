@@ -99,10 +99,10 @@ if __name__ == "__main__":
         'noise_std': 0.2,
         'architecture': 'unet',
         'max_epochs': 200,
-        'batch_size': 16
+        'batch_size': 32
     }
     
-    print(config)
+    print('Configuration: ',config)
     
     print("Training U-Net Flow Matching Model...")
     model_unet, trainer_unet = train_flow_matching_model(
