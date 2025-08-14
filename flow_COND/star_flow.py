@@ -18,7 +18,7 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
                             noise_std=0.0,
                             max_epochs=100,
                             batch_size=16,
-                            patience=15):
+                            patience=20):
     
     if torch.cuda.is_available():
         torch.set_float32_matmul_precision('medium')
@@ -42,7 +42,7 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
     
     early_stop = EarlyStopping(
         monitor='val_loss',
-        patience=patience,
+        patience=20,
         verbose=True,
         mode='min'
     )
@@ -56,7 +56,7 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
     )
 
     # ckpt_path = None
-    # ckpt_dir = '/n/netscratch/iaifi_lab/Lab/msliu/flow/lightning_logs/9mzh1db9/checkpoints/'
+    # ckpt_dir = '/n/netscratch/iaifi_lab/Lab/msliu/flow_COND/lightning_logs/tng_2param/checkpoints/'
     # if os.path.isdir(ckpt_dir):
     #     ckpts = [f for f in os.listdir(ckpt_dir) if f.endswith('.ckpt')]
     #     if ckpts:
@@ -91,11 +91,11 @@ if __name__ == "__main__":
 
     config={
         'model': 'IllustrisTNG',
-        'noise_std': 0.0,
+        'noise_std': 0.2,
         'architecture': 'unet',
         'max_epochs': 200,
         'batch_size': 32,
-        'patience': 15
+        'patience': 30
     }
     print('Configurations:',config)
     total_mass_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{config['model']}/Maps_Mtot_{config['model']}_LH_z=0.00.npy')
@@ -106,6 +106,7 @@ if __name__ == "__main__":
     total_mass_maps = np.log1p(total_mass_maps)
     star_maps = np.log1p(star_maps)
     gas_maps = np.log1p(gas_maps)
+    astro_params = astro_params[:,:2]
 
     print("Training U-Net Flow Matching Model...")
     model_unet, trainer_unet = train_flow_matching_model(

@@ -96,7 +96,7 @@ if __name__ == "__main__":
     star_maps = np.log1p(star_maps)
 
     config = {
-        'noise_std': 0.2,
+        'noise_std': 0.0,
         'architecture': 'unet',
         'max_epochs': 200,
         'batch_size': 32

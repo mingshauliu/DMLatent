@@ -64,7 +64,7 @@ class UNetScalarField(nn.Module):
         )
 
         self.param_encoder = nn.Sequential(
-            nn.Linear(6,64),
+            nn.Linear(2,64),
             nn.ReLU(),
             nn.Linear(64,64)
         )
