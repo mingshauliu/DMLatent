@@ -30,7 +30,7 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
         astro_params=astro_params,
         batch_size=batch_size,
         val_split=0.2,
-        num_workers=2  # Reduced from 4 to 2 to save memory
+        num_workers=4  # Back to 4 workers for faster data loading
     )
     
     model = FlowMatchingModel(
@@ -78,13 +78,16 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
         check_val_every_n_epoch=1,
         log_every_n_steps=50,
         callbacks=[early_stop, checkpoint],
-        accumulate_grad_batches=2,  # Accumulate gradients over 2 batches (effective batch size = 8 * 2 = 16)
+        accumulate_grad_batches=1,  # No need for gradient accumulation with larger batch size
         strategy='auto',
         enable_progress_bar=True,
-        enable_model_summary=False,  # Disable model summary to save memory
+        enable_model_summary=True,  # Re-enable model summary
         enable_checkpointing=True,
-        detect_anomaly=False,  # Disable anomaly detection to save memory
-        use_distributed_sampler=False
+        detect_anomaly=False,  # Keep disabled to save some memory
+        use_distributed_sampler=False,
+        limit_train_batches=1.0,  # Use full training set
+        limit_val_batches=1.0,    # Use full validation set
+        num_sanity_val_steps=2    # Re-enable sanity check
     )
     
     # trainer.fit(model, data_module, ckpt_path=ckpt_path)
@@ -96,12 +99,16 @@ def train_flow_matching_model(total_mass_maps, star_maps, gas_maps, astro_params
 
 if __name__ == "__main__":
 
+    # Set random seed for reproducible sampling
+    np.random.seed(42)
+    
     config={
-        'models': ['IllustrisTNG', 'EAGLE', 'SIMBA', 'Astrid'],  # List of models to train on
+        'models': ['IllustrisTNG', 'EAGLE', 'SIMBA', 'Astrid'],  # Back to 4 models
+        'samples_per_model': 8000,  # Number of samples to load from each model
         'noise_std': 0.2,
         'architecture': 'unet',
         'max_epochs': 200,
-        'batch_size': 8,  # Reduced from 16 to 8
+        'batch_size': 32,  # Back to larger batch size for speed
         'patience': 30
     }
     print('Configurations:',config)
@@ -115,10 +122,22 @@ if __name__ == "__main__":
     for model_name in config['models']:
         print(f"Loading data from {model_name}...")
         
-        total_mass = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mtot_{model_name}_LH_z=0.00.npy')
+        total_mass = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mcdm_{model_name}_LH_z=0.00.npy')
         astro_params = np.loadtxt(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/params_LH_{model_name}.txt')
         star_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mstar_{model_name}_LH_z=0.00.npy')
         gas_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mgas_{model_name}_LH_z=0.00.npy')
+        
+        # Randomly sample specified number of samples from each model
+        n_samples = min(config['samples_per_model'], len(total_mass))
+        if len(total_mass) > n_samples:
+            # Randomly sample indices
+            indices = np.random.choice(len(total_mass), n_samples, replace=False)
+            total_mass = total_mass[indices]
+            star_maps = star_maps[indices]
+            gas_maps = gas_maps[indices]
+            astro_params = astro_params[indices//15]
+        
+        print(f"  Loaded {len(total_mass)} samples from {model_name}")
         
         # Apply log1p transformation
         total_mass = np.log1p(total_mass)
@@ -147,6 +166,11 @@ if __name__ == "__main__":
     # 2. Use data streaming with torch.utils.data.IterableDataset
     # 3. Implement gradient checkpointing in the model
     
+    # Memory cleanup before training
+    import gc
+    gc.collect()
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
+    
     print(f"Combined dataset sizes:")
     print(f"  Total mass maps: {total_mass_maps.shape}")
     print(f"  Star maps: {star_maps.shape}")
@@ -159,7 +183,18 @@ if __name__ == "__main__":
     map_size = total_mass_maps.shape[1] * total_mass_maps.shape[2]
     estimated_memory_gb = (total_samples * map_size * 4 * 3) / (1024**3)  # Rough estimate for 3 data types
     print(f"Estimated memory usage: ~{estimated_memory_gb:.2f} GB")
-    print(f"Batch size: {config['batch_size']}, Effective batch size: {config['batch_size'] * 2} (with gradient accumulation)")
+    print(f"Batch size: {config['batch_size']}, Effective batch size: {config['batch_size']} (no gradient accumulation)")
+    print(f"Samples per model: {config['samples_per_model']}, Total samples: {total_samples}")
+    
+    # Check available memory
+    if torch.cuda.is_available():
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        print(f"GPU memory available: {gpu_memory:.2f} GB")
+        if estimated_memory_gb > gpu_memory * 0.8:
+            print("⚠️  WARNING: Estimated memory usage is high relative to GPU memory!")
+            print("   Consider reducing samples_per_model or batch_size further.")
+        else:
+            print("✅ Memory usage looks good for training!")
 
     print("Training U-Net Flow Matching Model on multiple models...")
     model_unet, trainer_unet = train_flow_matching_model(

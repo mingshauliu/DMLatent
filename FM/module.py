@@ -66,9 +66,9 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=False,  # Disable pin_memory to save RAM
-            persistent_workers=False,  # Disable persistent workers to save memory
-            drop_last=True  # Drop incomplete batches to save memory
+            pin_memory=True,  # Re-enable pin_memory for faster GPU transfer
+            persistent_workers=True,  # Re-enable persistent workers for efficiency
+            drop_last=False  # Don't drop incomplete batches
         )
     
     def val_dataloader(self):
@@ -77,9 +77,9 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=False,  # Disable pin_memory to save RAM
-            persistent_workers=False,  # Disable persistent workers to save memory
-            drop_last=True  # Drop incomplete batches to save memory
+            pin_memory=True,  # Re-enable pin_memory for faster GPU transfer
+            persistent_workers=True,  # Re-enable persistent workers for efficiency
+            drop_last=False  # Don't drop incomplete batches
         )
 
 class FlowMatchingModel(pl.LightningModule):
