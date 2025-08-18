@@ -53,8 +53,12 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
         val_gas_maps = self.gas_maps[val_indices]
         val_astro_params = self.astro_params[val_indices//15]
         
-        self.train_dataset = AstroMapDataset(train_total_mass, train_star_maps, train_gas_maps, train_astro_params)
-        self.val_dataset = AstroMapDataset(val_total_mass, val_star_maps, val_gas_maps, val_astro_params)
+        # Create model_ids for tracking (optional)
+        train_model_ids = np.arange(len(train_indices))  # Simple sequential IDs
+        val_model_ids = np.arange(len(val_indices))
+        
+        self.train_dataset = AstroMapDataset(train_total_mass, train_star_maps, train_gas_maps, train_astro_params, train_model_ids)
+        self.val_dataset = AstroMapDataset(val_total_mass, val_star_maps, val_gas_maps, val_astro_params, val_model_ids)
     
     def train_dataloader(self):
         return DataLoader(
@@ -62,7 +66,9 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=False,  # Disable pin_memory to save RAM
+            persistent_workers=False,  # Disable persistent workers to save memory
+            drop_last=True  # Drop incomplete batches to save memory
         )
     
     def val_dataloader(self):
@@ -71,7 +77,9 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=False,  # Disable pin_memory to save RAM
+            persistent_workers=False,  # Disable persistent workers to save memory
+            drop_last=True  # Drop incomplete batches to save memory
         )
 
 class FlowMatchingModel(pl.LightningModule):
@@ -88,7 +96,11 @@ class FlowMatchingModel(pl.LightningModule):
         self.learning_rate = learning_rate
         self.alpha = alpha
         self.noise_std = noise_std
-        self.scalar_field = UNetScalarField(in_channels=2, out_channels=2) 
+        self.scalar_field = UNetScalarField(in_channels=2, out_channels=2)
+        
+        # Enable memory efficient training
+        self.automatic_optimization = True
+        self.automatic_logging = True
             
     def sample_time(self, batch_size, device):
         """Sample random times for flow matching"""
@@ -99,7 +111,12 @@ class FlowMatchingModel(pl.LightningModule):
         return self.scalar_field(x, t, condition, resnet_input)
     
     def training_step(self, batch, batch_idx):
-        total_mass, target_maps, params = batch
+        # Handle optional model_id
+        if len(batch) == 4:
+            total_mass, target_maps, params, model_id = batch
+        else:
+            total_mass, target_maps, params = batch
+            model_id = None
 
         batch_size = total_mass.size(0)
         device = total_mass.device
@@ -134,7 +151,13 @@ class FlowMatchingModel(pl.LightningModule):
         return loss
     
     def validation_step(self, batch, batch_idx):
-        total_mass, target_field, params = batch
+        # Handle optional model_id
+        if len(batch) == 4:
+            total_mass, target_field, params, model_id = batch
+        else:
+            total_mass, target_field, params = batch
+            model_id = None
+            
         batch_size = total_mass.size(0)
         device = total_mass.device
         

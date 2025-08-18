@@ -2,3 +2,4 @@ __pycache__/
 wandb
 *.err
 *.out
+lightning_logs/

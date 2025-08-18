@@ -36,7 +36,7 @@ def main():
     }
     
     cdm_file='/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/IllustrisTNG/Maps_Mgas_IllustrisTNG_LH_z=0.00.npy'
-    wdm_file='/n/netscratch/iaifi_lab/Lab/msliu/Maps_Mgas_IllustrisTNG_WDM_z=0.00.npy'
+    wdm_file='/n/netscratch/iaifi_lab/Lab/ccuestalazaro/DREAMS/Images/WDM/boxes/Maps_Mgas_IllustrisTNG_WDM_z=0.00.npy'
     
     if config['normalize']:
         cdm = np.log1p(np.load(cdm_file))

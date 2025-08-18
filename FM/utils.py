@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 
 class AstroMapDataset(Dataset):
-    def __init__(self, total_mass_maps: np.ndarray, star_maps: np.ndarray, gas_maps: np.ndarray, params: np.ndarray, transform=None):
+    def __init__(self, total_mass_maps: np.ndarray, star_maps: np.ndarray, gas_maps: np.ndarray, params: np.ndarray, model_ids: np.ndarray = None, transform=None):
         self.total_mass_maps = torch.FloatTensor(total_mass_maps)
         
         # Stack star and gas maps into 2-channel target
@@ -16,6 +16,7 @@ class AstroMapDataset(Dataset):
         gas_tensor = torch.FloatTensor(gas_maps)
         self.target_maps = torch.stack([star_tensor, gas_tensor], dim=1)  # Shape: (N, 2, H, W)
         self.params = torch.FloatTensor(params)
+        self.model_ids = model_ids  # Optional: track which model each sample comes from
         self.transform = transform
         
         # Normalize
@@ -46,4 +47,8 @@ class AstroMapDataset(Dataset):
             torch.manual_seed(seed)
             target_map = self.transform(target_map)
         
-        return total_mass, target_map, astro_param
+        if self.model_ids is not None:
+            model_id = self.model_ids[idx]
+            return total_mass, target_map, astro_param, model_id
+        else:
+            return total_mass, target_map, astro_param
