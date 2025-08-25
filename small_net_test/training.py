@@ -30,7 +30,7 @@ def main():
         'patience': 20,  # Early stopping patience
         'k_samples': 15000,  # Number of samples to use
         'model_type': 'large',  # 'tiny', 'medium', 'large', 'huge'
-        'map_type': 'star',  # 'tot','cdm','star'
+        'map_type': 'cdm',  # 'tot','cdm','star'
         'data_type': 'sid',  # 'sid','carol'
         'blur_kernel': 0, # Blur kernel size (0 for no blur)
         'conv_kernel_size': 9,  # Kernel size for convolutional layers
