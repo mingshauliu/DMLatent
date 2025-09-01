@@ -19,6 +19,8 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
                  star_maps: np.ndarray,
                  gas_maps: np.ndarray,
                  T_maps: np.ndarray,
+                 HI_maps: np.ndarray,
+                 P_maps: np.ndarray,
                  astro_params: np.ndarray,
                  batch_size: int = 32,
                  val_split: float = 0.2,
@@ -29,6 +31,8 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
         self.star_maps = star_maps
         self.gas_maps = gas_maps
         self.T_maps = T_maps
+        self.HI_maps = HI_maps
+        self.P_maps = P_maps
         self.astro_params = astro_params
         self.batch_size = batch_size
         self.val_split = val_split
@@ -49,12 +53,16 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
         train_star_maps = self.star_maps[train_indices]
         train_gas_maps = self.gas_maps[train_indices]
         train_T_maps = self.T_maps[train_indices]
+        train_HI_maps = self.HI_maps[train_indices]
+        train_P_maps = self.P_maps[train_indices]
         train_astro_params = self.astro_params[train_indices//15]
         
         val_cdm_mass = self.cdm_mass_maps[val_indices]
         val_star_maps = self.star_maps[val_indices]
         val_gas_maps = self.gas_maps[val_indices]
         val_T_maps = self.T_maps[val_indices]
+        val_HI_maps = self.HI_maps[val_indices]
+        val_P_maps = self.P_maps[val_indices]
         val_astro_params = self.astro_params[val_indices//15]
         
         # Create model_ids for tracking (optional)
@@ -66,6 +74,8 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             train_star_maps,
             train_gas_maps,
             train_T_maps,
+            train_HI_maps,
+            train_P_maps,
             params=train_astro_params,
             model_ids=train_model_ids,
             transform=None,
@@ -75,6 +85,8 @@ class AstroFlowMatchingDataModule(pl.LightningDataModule):
             val_star_maps,
             val_gas_maps,   
             val_T_maps,
+            val_HI_maps,
+            val_P_maps,
             params=val_astro_params,
             model_ids=val_model_ids,
             transform=None,
@@ -116,7 +128,7 @@ class FlowMatchingModel(pl.LightningModule):
         self.learning_rate = learning_rate
         self.alpha = alpha
         self.noise_std = noise_std
-        self.scalar_field = UNetScalarField(in_channels=3, out_channels=3)
+        self.scalar_field = UNetScalarField(in_channels=5, out_channels=5)
         
         # Enable memory efficient training
         self.automatic_optimization = True
@@ -142,7 +154,7 @@ class FlowMatchingModel(pl.LightningModule):
         device = cdm_mass.device
         
         t = self.sample_time(batch_size, device)
-        x0 = cdm_mass.expand(-1,3,-1,-1)
+        x0 = cdm_mass.expand(-1,5,-1,-1)
         
         noise = torch.randn_like(x0)*self.noise_std
         x0 = x0 + noise
@@ -184,7 +196,7 @@ class FlowMatchingModel(pl.LightningModule):
         # Sample random times
         t = self.sample_time(batch_size, device)
         
-        x0 = cdm_mass.expand(-1,3,-1,-1)
+        x0 = cdm_mass.expand(-1,5,-1,-1)
 
         noise = torch.randn_like(x0)*self.noise_std
         x0 = x0 + noise
@@ -228,7 +240,7 @@ class FlowMatchingModel(pl.LightningModule):
         batch_size = cdm_mass_condition.size(0)
         
         # Initialize x at time t = 0
-        x = cdm_mass.expand(-1,3,-1,-1).clone()
+        x = cdm_mass.expand(-1,5,-1,-1).clone()
         dt = 1.0 / num_steps
         
         with torch.no_grad():

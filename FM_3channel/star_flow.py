@@ -13,10 +13,10 @@ import os
 
 from module import AstroFlowMatchingDataModule, FlowMatchingModel
 
-def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, astro_params,
+def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, P_maps, astro_params,
                             architecture='unet',
                             noise_std=0.0,
-                            max_epochs=100,
+                            max_epochs=300,
                             batch_size=16,
                             patience=20):
     
@@ -28,6 +28,7 @@ def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, astro_
         star_maps=star_maps,
         gas_maps=gas_maps,
         T_maps=T_maps,
+        P_maps=P_maps,
         astro_params=astro_params,
         batch_size=batch_size,
         val_split=0.2,
@@ -41,12 +42,11 @@ def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, astro_
         alpha=10
     )
     
-    early_stop = EarlyStopping(
-        monitor='val_loss',
-        patience=20,
-        verbose=True,
-        mode='min'
-    )
+    # early_stop = EarlyStopping(
+    #     monitor='val_loss',
+    #     verbose=True,
+    #     mode='min'
+    # )
     
     checkpoint = ModelCheckpoint(
         monitor='val_loss',
@@ -78,7 +78,7 @@ def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, astro_
         gradient_clip_val=1.0,
         check_val_every_n_epoch=1,
         log_every_n_steps=50,
-        callbacks=[early_stop, checkpoint],
+        callbacks=[checkpoint],
         accumulate_grad_batches=1,  # No need for gradient accumulation with larger batch size
         strategy='auto',
         enable_progress_bar=True,
@@ -119,6 +119,7 @@ if __name__ == "__main__":
     all_star_maps = []
     all_gas_maps = []
     all_T_maps = []
+    all_P_maps = []
     all_astro_params = []
     
     for model_name in config['models']:
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         star_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mstar_{model_name}_LH_z=0.00.npy')
         gas_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_Mgas_{model_name}_LH_z=0.00.npy')
         T_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_T_{model_name}_LH_z=0.00.npy')
+        P_maps = np.load(f'/n/netscratch/iaifi_lab/Lab/msliu/CMD/data/{model_name}/Maps_P_{model_name}_LH_z=0.00.npy')
         
         # Randomly sample specified number of samples from each model
         n_samples = min(config['samples_per_model'], len(cdm_mass))
@@ -139,6 +141,7 @@ if __name__ == "__main__":
             star_maps = star_maps[indices]
             gas_maps = gas_maps[indices]
             T_maps = T_maps[indices]
+            P_maps = P_maps[indices]
             astro_params = astro_params[indices//15]
         
         print(f"  Loaded {len(cdm_mass)} samples from {model_name}")
@@ -148,6 +151,7 @@ if __name__ == "__main__":
         star_maps = np.log1p(star_maps)
         gas_maps = np.log1p(gas_maps)
         T_maps = np.log1p(T_maps)
+        P_maps = np.log1p(P_maps)
         astro_params = astro_params[:,:2]
         
         # Add model identifier to astro_params (optional, for debugging)
@@ -158,6 +162,7 @@ if __name__ == "__main__":
         all_star_maps.append(star_maps)
         all_gas_maps.append(gas_maps)
         all_T_maps.append(T_maps)
+        all_P_maps.append(P_maps)
         all_astro_params.append(astro_params)
     
     # Combine all data
@@ -165,6 +170,7 @@ if __name__ == "__main__":
     star_maps = np.concatenate(all_star_maps, axis=0)
     gas_maps = np.concatenate(all_gas_maps, axis=0)
     T_maps = np.concatenate(all_T_maps, axis=0)
+    P_maps = np.concatenate(all_P_maps, axis=0)
     astro_params = np.concatenate(all_astro_params, axis=0)
     
     # Alternative: Progressive loading strategy for very large datasets
@@ -183,6 +189,7 @@ if __name__ == "__main__":
     print(f"  Star maps: {star_maps.shape}")
     print(f"  Gas maps: {gas_maps.shape}")
     print(f"  Temperature maps: {T_maps.shape}")
+    print(f"  Electron density maps: {P_maps.shape}")
     print(f"  Astro params: {astro_params.shape}")
     print(f"  Training on {len(config['models'])} models: {config['models']}")
     
@@ -206,7 +213,7 @@ if __name__ == "__main__":
 
     print("Training U-Net Flow Matching Model on multiple models...")
     model_unet, trainer_unet = train_flow_matching_model(
-        cdm_mass_maps, star_maps, gas_maps, T_maps, astro_params,
+        cdm_mass_maps, star_maps, gas_maps, T_maps, P_maps, astro_params,
         noise_std=config['noise_std'],
         architecture=config['architecture'],
         max_epochs=config['max_epochs'],

@@ -10,8 +10,8 @@ class FiLMLayer(nn.Module):
     def forward(self, features, condition_embed):
         scale_shift = self.linear(condition_embed)
         scale, shift = scale_shift.chunk(2, dim=1)
-        scale = scale.view(-1, features.size(1), 1, 1)
-        shift = shift.view(-1, features.size(1), 1, 1)
+        scale = scale.reshape(-1, features.size(1), 1, 1)
+        shift = shift.reshape(-1, features.size(1), 1, 1)
         return features * (1 + scale) + shift
 
 class UNetBlock(nn.Module):
@@ -118,9 +118,9 @@ class UNetScalarField(nn.Module):
         super().__init__()
 
         # Add ResNet branch for processing two-channel input
-        self.resnet_branch = ResNetBranch(in_channels=3, embedding_dim=64)
+        self.resnet_branch = ResNetBranch(in_channels=5, embedding_dim=64)
 
-        self.upconv4 = nn.ConvTranspose2d(base_channels*8, base_channels*4, 2, stride=2)
+        self.upconv4 = nn.ConvTranspose2d(64, base_channels*4, 2, stride=2)
         self.upconv3 = nn.ConvTranspose2d(base_channels*4, base_channels*2, 2, stride=2)
         self.upconv2 = nn.ConvTranspose2d(base_channels*2, base_channels, 2, stride=2)
         self.upconv1 = nn.ConvTranspose2d(base_channels, base_channels//2, 2, stride=2)
@@ -152,12 +152,12 @@ class UNetScalarField(nn.Module):
         self.enc4 = UNetBlock(base_channels*4, base_channels*8, condition_dim, down=True)
         
         self.bottleneck = nn.Sequential(
-            nn.Conv2d(base_channels*8, base_channels*16, 3, padding=1),
+            nn.Conv2d(base_channels*8, 128, 3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(base_channels*16, base_channels*8, 3, padding=1),
+            nn.Conv2d(128, 64, 3, padding=1),
             nn.ReLU(inplace=True)
         )
-        self.bottleneck_film = FiLMLayer(condition_dim, base_channels*8)
+        self.bottleneck_film = FiLMLayer(condition_dim, 64)
         
         self.dec4 = UNetBlock(base_channels*8 + base_channels*4, base_channels*4, condition_dim, down=False) 
         self.dec3 = UNetBlock(base_channels*4 + base_channels*2, base_channels*2, condition_dim, down=False) 
