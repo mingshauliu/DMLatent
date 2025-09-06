@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 import os
 
-from module_8_512 import AstroFlowMatchingDataModule, FlowMatchingModel
+from module_new import AstroFlowMatchingDataModule, FlowMatchingModel
 
 def train_flow_matching_model(cdm_mass_maps, star_maps, gas_maps, T_maps, P_maps, astro_params,
                             architecture='unet',
@@ -104,8 +104,8 @@ if __name__ == "__main__":
     np.random.seed(42)
     
     config={
-        'models': ['IllustrisTNG', 'EAGLE', 'SIMBA', 'Astrid'],  # Back to 4 models
-        'samples_per_model': 8000,  # Number of samples to load from each model
+        'models': ['SIMBA'],  # Only SIMBA
+        'samples_per_model': 15000,  # Number of samples to load from each model
         'noise_std': 0.2,
         'architecture': 'unet',
         'max_epochs': 200,

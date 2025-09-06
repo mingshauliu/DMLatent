@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -c 1                # Number of cores (-c)
-#SBATCH -t 0-15:00          # Runtime in D-HH:MM, minimum of 10 minutes
+#SBATCH -t 0-12:00          # Runtime in D-HH:MM, minimum of 10 minutes
 #SBATCH -p gpu        # Partition to submit to
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu
@@ -15,4 +15,4 @@ module load python
 mamba activate env 
 
 # run code
-python star_flow_8_512.py
+python star_flow_simba.py
