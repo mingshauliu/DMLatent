@@ -108,7 +108,7 @@ if __name__ == "__main__":
         'samples_per_model': 8000,  # Number of samples to load from each model
         'noise_std': 0.2,
         'architecture': 'unet',
-        'max_epochs': 200,
+        'max_epochs': 1000,
         'batch_size': 32,  # Back to larger batch size for speed
         'patience': 30
     }

@@ -228,11 +228,11 @@ class FlowMatchingModel(pl.LightningModule):
         }
 
         
-    def sample(self, cdm_mass, astro_params, cdm_mass_condition, resnet_input=None, resnet_embed=None, num_steps=100, method='euler'):
+    def sample(self, cdm_mass, astro_params, resnet_input=None, resnet_embed=None, num_steps=100, method='euler'):
         """Generate star maps from total mass maps using the learned flow"""
         self.eval()
         device = next(self.parameters()).device
-        batch_size = cdm_mass_condition.size(0)
+        batch_size = cdm_mass.size(0)
         
         # Initialize x at time t = 0
         x = cdm_mass.expand(-1,4,-1,-1).clone()
@@ -249,7 +249,7 @@ class FlowMatchingModel(pl.LightningModule):
                 t = torch.full((batch_size,), i * dt, device=device)  # t ∈ [0, 1)
                 combined_condition = torch.cat([t.unsqueeze(1),astro_params], dim=1)
                 
-                field_change = self(x, combined_condition, cdm_mass_condition, resnet_embed)
+                field_change = self(x, combined_condition, resnet_embed)
     
                 if method == 'euler':
                     x = x + dt * field_change
